@@ -14,6 +14,16 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
+# Check if node:16-alpine image exists locally
+if ! docker images | grep -q "node.*16-alpine"; then
+    echo -e "${YELLOW}Node.js image not found locally. Pulling from Docker Hub...${NC}"
+    docker pull node:16-alpine
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}Failed to pull Node.js image. Please check your Docker Hub connection.${NC}"
+        exit 1
+    fi
+fi
+
 # Source external .env file if it exists
 if [ -f "/Users/larryli/Documents/Sobriety/Companies/companies_keys/MeetU/.env" ]; then
     echo -e "${GREEN}Found external .env file, importing credentials...${NC}"
