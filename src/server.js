@@ -6,6 +6,10 @@ const path = require("path");
 const http = require("http");
 const socketIO = require("socket.io");
 const authRoutes = require("./routes/auth");
+const {
+  translateText,
+  detectLanguage,
+} = require("./services/translationService");
 
 const app = express();
 const server = http.createServer(app);
@@ -34,12 +38,37 @@ io.on("connection", (socket) => {
     console.log(`${data.username} joined ${data.channel}`);
   });
 
-  socket.on("chat-message", (message) => {
-    io.to(message.channel).emit("chat-message", message);
+  socket.on("chat-message", async (message) => {
+    try {
+      // Detect language before broadcasting
+      const detectedLanguage = await detectLanguage(message.content);
+      message.language = detectedLanguage;
+
+      console.log("Detected language:", {
+        text: message.content,
+        language: detectedLanguage,
+      });
+
+      io.to(message.channel).emit("chat-message", message);
+    } catch (error) {
+      console.error("Language detection error:", error);
+      // If detection fails, still send message but with undefined language
+      io.to(message.channel).emit("chat-message", message);
+    }
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
+  });
+
+  socket.on("translate-message", async (data, callback) => {
+    try {
+      const translatedText = await translateText(data.text, data.from, data.to);
+      callback({ text: translatedText });
+    } catch (error) {
+      console.error("Translation error:", error);
+      callback({ error: "Translation service unavailable" });
+    }
   });
 });
 
