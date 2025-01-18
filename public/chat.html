@@ -252,51 +252,334 @@
         color: rgba(255, 255, 255, 0.8);
         border-top: 1px solid rgba(255, 255, 255, 0.2);
       }
+
+      .rooms-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+
+      .add-channel-btn {
+        background: #6c7cff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .add-channel-btn:hover {
+        background: #5a69ff;
+      }
+
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 400px;
+      }
+
+      .modal-content h2 {
+        margin: 0 0 20px 0;
+        font-size: 24px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #4a5568;
+      }
+
+      .form-group input[type="text"],
+      .form-group textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 16px;
+      }
+
+      .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .modal-buttons button {
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .modal-buttons button[type="button"] {
+        background: #e2e8f0;
+        border: none;
+      }
+
+      .modal-buttons button[type="submit"] {
+        background: #6c7cff;
+        color: white;
+        border: none;
+      }
+
+      .chat-container {
+        display: flex;
+        height: 100vh;
+        width: 100%;
+      }
+
+      .rooms-sidebar {
+        width: 300px;
+        background: #f8f9fe;
+        padding: 30px;
+        border-right: 1px solid #e8e8e8;
+        flex-shrink: 0;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .user-info {
+        margin-bottom: 20px;
+      }
+
+      .user-profile {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: #6c7cff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+      }
+
+      .user-avatar span {
+        color: white;
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      .user-details {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .username {
+        font-weight: 600;
+        font-size: 16px;
+        color: #2d3748;
+      }
+
+      .status {
+        font-size: 14px;
+        color: #48bb78;
+        display: flex;
+        align-items: center;
+      }
+
+      .status:before {
+        content: "";
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #48bb78;
+        margin-right: 6px;
+      }
+
+      .language-select {
+        width: 100%;
+      }
+
+      .language-select select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        font-size: 14px;
+        color: #4a5568;
+      }
+
+      .divider {
+        height: 1px;
+        background: #e2e8f0;
+        margin: 20px 0;
+      }
+
+      .rooms-header {
+        margin-top: 0;
+      }
+
+      .room-item {
+        padding: 15px;
+        border-radius: 8px;
+        background: white;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .room-item:hover {
+        background: #f7f7f7;
+      }
+
+      .room-info {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .room-name {
+        font-weight: 600;
+        color: #2d3748;
+      }
+
+      .room-description {
+        font-size: 14px;
+        color: #718096;
+      }
+
+      .room-details {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #a0aec0;
+        margin-top: 5px;
+      }
+
+      .room-hash {
+        color: #6c7cff;
+      }
     </style>
   </head>
   <body>
-    <div class="sidebar">
-      <div class="user-info">
-        <h3 id="username">Loading...</h3>
-        <div id="connectionStatus" class="status disconnected">
-          Disconnected
+    <div class="chat-container">
+      <!-- Left Sidebar -->
+      <div class="rooms-sidebar">
+        <!-- User Info Section -->
+        <div class="user-info">
+          <div class="user-profile">
+            <div class="user-avatar">
+              <span id="userInitial"></span>
+            </div>
+            <div class="user-details">
+              <span id="username" class="username"></span>
+              <span class="status online">Online</span>
+            </div>
+          </div>
+          <div class="language-select">
+            <select id="preferredLanguage">
+              <option value="en">English</option>
+              <option value="zh">Chinese</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+            </select>
+          </div>
         </div>
-        <div class="language-selector">
-          <label for="preferredLanguage">Preferred Language:</label>
-          <select id="preferredLanguage" onchange="updatePreferredLanguage()">
-            <option value="en">English</option>
-            <option value="zh">Chinese</option>
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
-            <option value="ja">Japanese</option>
-            <option value="ko">Korean</option>
+
+        <div class="divider"></div>
+
+        <!-- Rooms Section -->
+        <div class="rooms-header">
+          <h1>Rooms</h1>
+          <button class="add-channel-btn" onclick="showCreateChannelModal()">
+            +
+          </button>
+        </div>
+
+        <div class="room-controls">
+          <select class="room-type-select" onchange="loadRooms()">
+            <option value="my">My Rooms</option>
+            <option value="public">Public Rooms</option>
           </select>
         </div>
+
+        <div class="room-list" id="roomList">
+          <!-- Rooms will be populated here -->
+        </div>
       </div>
-      <div class="channels">
-        <h4>Channels</h4>
-        <div class="channel-item active">General</div>
-        <div class="channel-item">Random</div>
-        <div class="channel-item">Support</div>
+
+      <!-- Main Content Area -->
+      <div class="main-content">
+        <div class="message-container">
+          <div class="message-box">
+            <input
+              type="text"
+              id="messageInput"
+              placeholder="Type a message..."
+            />
+            <button class="send-btn">Send</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="main-content">
-      <div class="chat-header">
-        <h2 id="currentChannel">General</h2>
-        <button class="logout-button" onclick="handleLogout()">Logout</button>
-      </div>
-
-      <div id="messages" class="messages"></div>
-
-      <div class="message-input">
-        <input type="text" id="messageInput" placeholder="Type a message..." />
-        <button onclick="sendMessage()">Send</button>
+    <!-- Channel Creation Modal -->
+    <div id="channelModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2>Create New Channel</h2>
+        <form id="createChannelForm">
+          <div class="form-group">
+            <label for="channelName">Channel Name</label>
+            <input type="text" id="channelName" required />
+          </div>
+          <div class="form-group">
+            <label for="channelDescription">Description</label>
+            <textarea id="channelDescription" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="isPublic" checked />
+              Make channel public
+            </label>
+          </div>
+          <div class="modal-buttons">
+            <button type="button" onclick="hideCreateChannelModal()">
+              Cancel
+            </button>
+            <button type="submit">Create</button>
+          </div>
+        </form>
       </div>
     </div>
 
     <script>
-      let socket = null;
+      let socket;
       let currentChannel = "general";
       let userData = null;
       let preferredLanguage = "en";
@@ -313,46 +596,38 @@
       }
 
       function initializeSocket() {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          window.location.href = "/login.html";
-          return;
-        }
-
-        userData = JSON.parse(localStorage.getItem("user"));
-        if (!userData) {
-          window.location.href = "/login.html";
-          return;
-        }
-
-        document.getElementById("username").textContent = userData.username;
-
-        // Set initial preferred language
-        preferredLanguage = localStorage.getItem("preferredLanguage") || "en";
-        document.getElementById("preferredLanguage").value = preferredLanguage;
-        console.log("Initial preferred language:", preferredLanguage);
-
-        socket = io({
-          auth: { token },
-          transports: ["websocket", "polling"],
-        });
+        // Initialize socket connection
+        socket = io();
 
         socket.on("connect", () => {
-          document.getElementById("connectionStatus").className =
-            "status connected";
-          document.getElementById("connectionStatus").textContent = "Connected";
-          joinChannel(currentChannel);
+          console.log("Connected to server");
+          const user = JSON.parse(localStorage.getItem("user"));
+          if (user) {
+            socket.emit("join", { username: user.username, room: "general" });
+          }
         });
 
-        socket.on("connect_error", (error) => {
-          document.getElementById("connectionStatus").className =
-            "status disconnected";
-          document.getElementById("connectionStatus").textContent =
-            "Connection Error";
+        socket.on("message", (message) => {
+          const messageContainer = document.querySelector(".message-container");
+          if (messageContainer) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = "message";
+            messageDiv.innerHTML = `
+              <span class="username">${message.username}</span>
+              <span class="text">${message.text}</span>
+            `;
+            messageContainer.appendChild(messageDiv);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+          }
         });
 
-        socket.on("chat-message", (message) => {
-          appendMessage(message);
+        socket.on("roomJoined", (data) => {
+          console.log("Room joined:", data);
+          // Update UI as needed
+        });
+
+        socket.on("error", (error) => {
+          console.error("Socket error:", error);
         });
       }
 
@@ -497,6 +772,15 @@
           preferredLanguage = savedLanguage;
           document.getElementById("preferredLanguage").value = savedLanguage;
         }
+
+        // Get user data from localStorage
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user) {
+          document.getElementById("username").textContent = user.username;
+          document.getElementById("userInitial").textContent = user.username
+            .charAt(0)
+            .toUpperCase();
+        }
       });
 
       // Helper function to get language names
@@ -511,6 +795,192 @@
         };
         return languages[code] || code;
       }
+
+      function showCreateChannelModal() {
+        document.getElementById("channelModal").style.display = "flex";
+      }
+
+      function hideCreateChannelModal() {
+        document.getElementById("channelModal").style.display = "none";
+      }
+
+      document
+        .getElementById("createChannelForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const token = localStorage.getItem("token");
+          if (!token) {
+            window.location.href = "/login";
+            return;
+          }
+
+          const channelData = {
+            name: document.getElementById("channelName").value,
+            description: document.getElementById("channelDescription").value,
+            isPublic: document.getElementById("isPublic").checked,
+          };
+
+          try {
+            const response = await fetch("/api/channels", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+              },
+              body: JSON.stringify(channelData),
+            });
+
+            if (response.status === 401) {
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              window.location.href = "/login";
+              return;
+            }
+
+            if (response.ok) {
+              hideCreateChannelModal();
+              document.getElementById("createChannelForm").reset();
+              loadRooms();
+            } else {
+              const error = await response.json();
+              alert(error.error || "Failed to create channel");
+            }
+          } catch (error) {
+            console.error("Error creating channel:", error);
+            alert("Failed to create channel");
+          }
+        });
+
+      // Save language preference when changed
+      document
+        .getElementById("preferredLanguage")
+        .addEventListener("change", (e) => {
+          localStorage.setItem("preferredLanguage", e.target.value);
+        });
+
+      async function loadRooms() {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            window.location.href = "/login";
+            return;
+          }
+
+          const type = document.querySelector(".room-type-select").value;
+          const endpoint = `/api/channels/${type}`;
+
+          const response = await fetch(endpoint, {
+            headers: {
+              Authorization: token, // Send token as is
+            },
+          });
+
+          if (response.status === 401) {
+            // Token expired or invalid
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error("Failed to load rooms");
+          }
+
+          const channels = await response.json();
+          displayRooms(channels);
+        } catch (error) {
+          console.error("Error loading rooms:", error);
+          if (error.message.includes("token")) {
+            window.location.href = "/login";
+          }
+        }
+      }
+
+      function displayRooms(channels) {
+        const roomList = document.getElementById("roomList");
+        roomList.innerHTML = "";
+
+        channels.forEach((channel) => {
+          const roomDiv = document.createElement("div");
+          roomDiv.className = "room-item";
+          roomDiv.onclick = () => joinRoom(channel._id);
+
+          roomDiv.innerHTML = `
+            <div class="room-info">
+              <div class="room-name">${channel.name}</div>
+              <div class="room-description">${channel.description || ""}</div>
+              <div class="room-details">
+                <span class="room-owner">Created by ${
+                  channel.owner.username
+                }</span>
+                <span class="room-hash">#${channel.hash}</span>
+              </div>
+            </div>
+          `;
+
+          roomList.appendChild(roomDiv);
+        });
+      }
+
+      async function joinRoom(channelId) {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = "/login";
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/channels/${channelId}/join`, {
+            method: "POST",
+            headers: {
+              Authorization: token,
+            },
+          });
+
+          if (response.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error("Failed to join room");
+          }
+
+          const channel = await response.json();
+
+          // Join socket room
+          if (socket && socket.connected) {
+            socket.emit("join", {
+              username: JSON.parse(localStorage.getItem("user")).username,
+              room: channel._id,
+            });
+          }
+
+          loadRooms();
+        } catch (error) {
+          console.error("Error joining room:", error);
+        }
+      }
+
+      // Add message sending functionality
+      document.querySelector(".send-btn")?.addEventListener("click", () => {
+        sendMessage();
+      });
+
+      document
+        .querySelector("#messageInput")
+        ?.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            sendMessage();
+          }
+        });
+
+      // Track current room
+      let currentRoom = "general";
     </script>
   </body>
 </html>

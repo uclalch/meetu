@@ -10,6 +10,7 @@ const {
   translateText,
   detectLanguage,
 } = require("./services/translationService");
+const channelsRouter = require("./routes/channels");
 
 const app = express();
 const server = http.createServer(app);
@@ -86,6 +87,7 @@ app.get("/register", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/channels", channelsRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
