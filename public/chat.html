@@ -729,6 +729,11 @@
       let userData = null;
       let preferredLanguage = "en";
 
+      let socketInitialized = false;
+
+      // Add a map to store message history for each room
+      const roomMessages = new Map();
+
       function updatePreferredLanguage() {
         const newLanguage = document.getElementById("preferredLanguage").value;
         console.log("Updating preferred language to:", newLanguage);
@@ -741,18 +746,9 @@
       }
 
       function initializeSocket() {
-        // Keep track of last message to prevent duplicates
-        let lastMessage = {
-          content: null,
-          timestamp: null,
-          sender: null,
-          roomId: null,
-        };
-
         socket.on("connect", () => {
-          console.log("Connected to server");
           userData = JSON.parse(localStorage.getItem("user"));
-          if (userData) {
+          if (userData && currentRoom) {
             socket.emit("join", {
               username: userData.username,
               roomId: currentRoom,
@@ -761,39 +757,32 @@
         });
 
         socket.on("chat-message", (message) => {
-          // Check if this is a duplicate message (received within 2 seconds)
-          const isDuplicate =
-            lastMessage.content === message.content &&
-            lastMessage.sender?.id === message.sender?.id &&
-            lastMessage.roomId === message.roomId &&
-            Date.now() - lastMessage.timestamp < 2000; // 2 second window
-
-          if (isDuplicate) {
-            console.log("Skipping duplicate message");
-            return;
-          }
-
-          // Update last message
-          lastMessage = {
-            content: message.content,
-            sender: message.sender,
-            roomId: message.roomId,
-            timestamp: Date.now(),
-          };
-
           if (currentRoom === message.roomId) {
-            console.log("Displaying message:", message);
             appendMessage(message);
           }
         });
 
-        socket.on("roomJoined", (data) => {
-          console.log("Room joined:", data);
+        socket.on("message-history", ({ roomId, messages }) => {
+          console.log("Received message history for room:", roomId, messages);
+          if (!messages || !Array.isArray(messages)) {
+            console.error("Invalid message history received");
+            return;
+          }
+
+          // Only update display if this is for the current room
+          if (currentRoom === roomId) {
+            const messagesHistory = document.querySelector(".messages-history");
+            messagesHistory.innerHTML = ""; // Clear current messages
+            messages.forEach((message) => appendMessage(message));
+            messagesHistory.scrollTop = messagesHistory.scrollHeight;
+          }
         });
 
-        socket.on("error", (error) => {
-          console.error("Socket error:", error);
+        socket.on("roomJoined", (data) => {
+          // Room joined handler if needed
         });
+
+        socketInitialized = true;
       }
 
       function joinChannel(channelName) {
@@ -829,19 +818,19 @@
           timestamp: Date.now(), // Add timestamp to message data
         };
 
-        console.log("Sending message:", messageData);
+        // console.log("Sending message:", messageData);
         socket.emit("chat-message", messageData);
 
         input.value = "";
       }
 
       function appendMessage(message) {
-        console.log("Message details:", {
-          content: message.content,
-          messageLanguage: message.language,
-          receiverPreferredLanguage: preferredLanguage,
-          isSender: message.sender.id === userData.id,
-        });
+        // console.log("Message details:", {
+        //   content: message.content,
+        //   messageLanguage: message.language,
+        //   receiverPreferredLanguage: preferredLanguage,
+        //   isSender: message.sender.id === userData.id,
+        // });
 
         const messagesDiv = document.querySelector(".messages-history");
         const messageElement = document.createElement("div");
@@ -931,9 +920,11 @@
         });
       });
 
-      // Initialize on page load
+      // Initialize only once when the page loads
       document.addEventListener("DOMContentLoaded", () => {
-        initializeSocket();
+        if (!socketInitialized) {
+          initializeSocket();
+        }
         initializeRoomTypeButtons();
         loadRooms("my"); // Load "My Rooms" by default
 
@@ -1110,23 +1101,26 @@
       }
 
       function selectRoom(roomId, roomName) {
-        // Update current room
+        if (!roomId) {
+          console.error("Invalid room ID");
+          return;
+        }
+
         currentRoom = roomId;
 
         // Hide no-room message and show chat interface
-        const noRoomMessage = document.getElementById("no-room-selected");
-        const roomChat = document.getElementById("room-chat");
-
-        noRoomMessage.style.display = "none";
-        roomChat.style.display = "flex";
+        document.getElementById("no-room-selected").style.display = "none";
+        document.getElementById("room-chat").style.display = "flex";
 
         // Update room header
-        const roomTitle = document.querySelector(".room-title");
-        roomTitle.textContent = roomName;
+        document.querySelector(".room-title").textContent = roomName;
 
-        // Clear previous messages
+        // Clear messages and request history from server
         const messagesHistory = document.querySelector(".messages-history");
         messagesHistory.innerHTML = "";
+
+        // Request message history from server
+        socket.emit("get-message-history", { roomId });
 
         // Join room via socket
         socket.emit("join", {
@@ -1143,37 +1137,10 @@
         });
       }
 
-      // Initialize when DOM is loaded
-      document.addEventListener("DOMContentLoaded", () => {
-        // Get user data
-        userData = JSON.parse(localStorage.getItem("user"));
-
-        // Initialize socket events
-        initializeSocket();
-
-        // Show "Select a Room" message initially
-        const noRoomMessage = document.getElementById("no-room-selected");
-        const roomChat = document.getElementById("room-chat");
-
-        noRoomMessage.style.display = "flex";
-        roomChat.style.display = "none";
-
-        // Load initial rooms
-        loadRooms("my");
-      });
-
       // Add message sending functionality
       document.querySelector(".send-btn")?.addEventListener("click", () => {
         sendMessage();
       });
-
-      document
-        .querySelector("#messageInput")
-        ?.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") {
-            sendMessage();
-          }
-        });
     </script>
   </body>
 </html>
