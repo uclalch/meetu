@@ -741,26 +741,54 @@
       }
 
       function initializeSocket() {
+        // Keep track of last message to prevent duplicates
+        let lastMessage = {
+          content: null,
+          timestamp: null,
+          sender: null,
+          roomId: null,
+        };
+
         socket.on("connect", () => {
           console.log("Connected to server");
-          const user = JSON.parse(localStorage.getItem("user"));
-          if (user) {
+          userData = JSON.parse(localStorage.getItem("user"));
+          if (userData) {
             socket.emit("join", {
-              username: user.username,
+              username: userData.username,
               roomId: currentRoom,
             });
           }
         });
 
-        socket.on("message", (message) => {
+        socket.on("chat-message", (message) => {
+          // Check if this is a duplicate message (received within 2 seconds)
+          const isDuplicate =
+            lastMessage.content === message.content &&
+            lastMessage.sender?.id === message.sender?.id &&
+            lastMessage.roomId === message.roomId &&
+            Date.now() - lastMessage.timestamp < 2000; // 2 second window
+
+          if (isDuplicate) {
+            console.log("Skipping duplicate message");
+            return;
+          }
+
+          // Update last message
+          lastMessage = {
+            content: message.content,
+            sender: message.sender,
+            roomId: message.roomId,
+            timestamp: Date.now(),
+          };
+
           if (currentRoom === message.roomId) {
+            console.log("Displaying message:", message);
             appendMessage(message);
           }
         });
 
         socket.on("roomJoined", (data) => {
           console.log("Room joined:", data);
-          // Update UI as needed
         });
 
         socket.on("error", (error) => {
@@ -782,7 +810,12 @@
       }
 
       function sendMessage() {
-        if (!socket?.connected || !currentRoom) return;
+        if (!socket?.connected || !currentRoom) {
+          console.log(
+            "Cannot send message - socket disconnected or no room selected"
+          );
+          return;
+        }
 
         const input = document.getElementById("messageInput");
         const content = input.value.trim();
@@ -793,6 +826,7 @@
           roomId: currentRoom,
           sender: userData,
           language: "auto",
+          timestamp: Date.now(), // Add timestamp to message data
         };
 
         console.log("Sending message:", messageData);
@@ -809,7 +843,7 @@
           isSender: message.sender.id === userData.id,
         });
 
-        const messagesDiv = document.getElementById("messages");
+        const messagesDiv = document.querySelector(".messages-history");
         const messageElement = document.createElement("div");
         messageElement.className = `message ${
           message.sender.id === userData.id ? "sent" : "received"
@@ -823,8 +857,6 @@
 
         // Handle translation for received messages
         if (message.sender.id !== userData.id) {
-          // Only show translate button if message language is different from preferred language
-          // and if the language was successfully detected (not 'auto')
           if (
             message.language !== preferredLanguage &&
             message.language !== "auto"
