@@ -867,6 +867,40 @@
           // Room joined handler if needed
         });
 
+        socket.on("channel deleted", (channelId) => {
+          console.log("Received channel deleted event:", channelId);
+
+          // If user is currently in the deleted channel, remove them
+          if (currentRoom === channelId) {
+            // Reset current room
+            currentRoom = null;
+
+            // Hide chat interface and show no-room message
+            document.getElementById("room-chat").style.display = "none";
+            document.getElementById("no-room-selected").style.display = "flex";
+
+            // Clear room name
+            const roomNameElement = document.getElementById("room-name");
+            if (roomNameElement) {
+              roomNameElement.textContent = "";
+            }
+
+            // Alert the user
+            alert("This channel has been deleted by the owner.");
+          }
+
+          // Remove the channel from the list
+          const channelElement = document.querySelector(
+            `[data-room-id="${channelId}"]`
+          );
+          if (channelElement) {
+            channelElement.remove();
+          }
+
+          // Refresh the rooms list
+          loadRooms();
+        });
+
         socketInitialized = true;
       }
 
@@ -1226,41 +1260,76 @@
         });
       }
 
-      function selectRoom(roomId, roomName) {
+      async function selectRoom(roomId, roomName) {
         if (!roomId) {
           console.error("Invalid room ID");
           return;
         }
 
-        currentRoom = roomId;
+        try {
+          // Check if channel still exists before joining
+          const token = localStorage.getItem("token");
+          const response = await fetch(`/api/channels/${roomId}/check`, {
+            headers: {
+              Authorization: token,
+            },
+          });
 
-        // Hide no-room message and show chat interface
-        document.getElementById("no-room-selected").style.display = "none";
-        document.getElementById("room-chat").style.display = "flex";
+          if (response.status === 404) {
+            // Channel doesn't exist anymore
+            alert("This channel is no longer available.");
 
-        // Update room header
-        document.querySelector(".room-title").textContent = roomName;
+            // Remove the channel from the list immediately
+            const channelElement = document.querySelector(
+              `[data-room-id="${roomId}"]`
+            );
+            if (channelElement) {
+              channelElement.remove();
+            }
 
-        // Clear messages and request history from server
-        const messagesHistory = document.querySelector(".messages-history");
-        messagesHistory.innerHTML = "";
-
-        // Request message history from server
-        socket.emit("get-message-history", { roomId });
-
-        // Join room via socket
-        socket.emit("join", {
-          username: userData?.username,
-          roomId: currentRoom,
-        });
-
-        // Update active room styling
-        document.querySelectorAll(".room-item").forEach((item) => {
-          item.classList.remove("active");
-          if (item.dataset.roomId === roomId) {
-            item.classList.add("active");
+            // Refresh the rooms list
+            loadRooms();
+            return;
           }
-        });
+
+          if (!response.ok) {
+            throw new Error("Failed to check channel status");
+          }
+
+          // Channel exists, proceed with joining
+          currentRoom = roomId;
+
+          // Hide no-room message and show chat interface
+          document.getElementById("no-room-selected").style.display = "none";
+          document.getElementById("room-chat").style.display = "flex";
+
+          // Update room header
+          document.querySelector(".room-title").textContent = roomName;
+
+          // Clear messages and request history from server
+          const messagesHistory = document.querySelector(".messages-history");
+          messagesHistory.innerHTML = "";
+
+          // Request message history from server
+          socket.emit("get-message-history", { roomId });
+
+          // Join room via socket
+          socket.emit("join", {
+            username: userData?.username,
+            roomId: currentRoom,
+          });
+
+          // Update active room styling
+          document.querySelectorAll(".room-item").forEach((item) => {
+            item.classList.remove("active");
+            if (item.dataset.roomId === roomId) {
+              item.classList.add("active");
+            }
+          });
+        } catch (error) {
+          console.error("Error selecting room:", error);
+          alert("Failed to join channel. Please try again.");
+        }
       }
 
       // Add message sending functionality
@@ -1287,15 +1356,18 @@
           });
 
           if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.error || "Failed to delete channel");
+            const error = await response.json();
+            throw new Error(error.message || "Failed to delete channel");
           }
 
-          // Refresh the room list after successful deletion
+          // Emit the delete event through socket
+          socket.emit("channel deleted", roomId);
+
+          // Refresh the room list
           loadRooms();
         } catch (error) {
           console.error("Error deleting room:", error);
-          alert(error.message);
+          alert("Failed to delete channel: " + error.message);
         }
       }
 

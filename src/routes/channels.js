@@ -92,4 +92,94 @@ router.post("/:id/join", auth, async (req, res) => {
   }
 });
 
+// Delete channel
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    console.log("Attempting to delete channel:", req.params.id); // Debug log
+
+    const channel = await Channel.findById(req.params.id);
+    console.log("Found channel:", channel); // Debug log
+
+    if (!channel) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
+
+    // Debug logs for ownership check
+    console.log("Channel owner:", channel.owner.toString());
+    console.log("Current user:", req.user._id.toString());
+
+    // Check if the current user is the owner
+    if (channel.owner.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ error: "Only the channel owner can delete the channel" });
+    }
+
+    // Delete the channel
+    const deletedChannel = await Channel.findByIdAndDelete(req.params.id);
+    console.log("Channel deleted:", deletedChannel); // Debug log
+
+    // Emit socket event for channel deletion
+    if (req.app.get("io")) {
+      req.app.get("io").emit("channel deleted", channel._id);
+      console.log("Emitted channel deleted event"); // Debug log
+    } else {
+      console.log("Socket.io not initialized"); // Debug log
+    }
+
+    res.json({ message: "Channel deleted successfully" });
+  } catch (error) {
+    console.error("Error details:", error); // Detailed error log
+    res.status(500).json({
+      error: "Failed to delete channel",
+      details: error.message,
+    });
+  }
+});
+
+// Leave channel
+router.post("/:id/leave", auth, async (req, res) => {
+  try {
+    const channel = await Channel.findById(req.params.id);
+
+    if (!channel) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
+
+    // Can't leave if you're the owner
+    if (channel.owner.toString() === req.user._id.toString()) {
+      return res.status(403).json({
+        error: "Channel owner cannot leave. Delete the channel instead.",
+      });
+    }
+
+    // Remove user from members
+    channel.members = channel.members.filter(
+      (memberId) => memberId.toString() !== req.user._id.toString()
+    );
+
+    await channel.save();
+    res.json({ message: "Left channel successfully" });
+  } catch (error) {
+    console.error("Error leaving channel:", error);
+    res.status(500).json({ error: "Failed to leave channel" });
+  }
+});
+
+// Add this new route to check if a channel exists
+router.get("/:id/check", auth, async (req, res) => {
+  try {
+    const channel = await Channel.findById(req.params.id);
+
+    if (!channel) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
+
+    res.json({ exists: true });
+  } catch (error) {
+    console.error("Error checking channel:", error);
+    res.status(500).json({ error: "Failed to check channel status" });
+  }
+});
+
 module.exports = router;
