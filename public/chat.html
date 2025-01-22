@@ -875,7 +875,7 @@
             // Reset current room
             currentRoom = null;
 
-            // Reset the view to initial state - using the same display styles
+            // Reset the view to initial state
             document.getElementById("no-room-selected").style.display = "flex";
             document.getElementById("room-chat").style.display = "none";
 
@@ -893,8 +893,13 @@
             alert("This channel has been deleted by the owner.");
           }
 
-          // Refresh the rooms list
-          loadRooms();
+          // Remove the channel element from both public and my rooms lists
+          const channelElements = document.querySelectorAll(
+            `[data-room-id="${channelId}"]`
+          );
+          channelElements.forEach((element) => {
+            element.remove();
+          });
         });
 
         socketInitialized = true;
@@ -1215,15 +1220,13 @@
 
           roomDiv.appendChild(roomInfoDiv);
 
-          // Debug logs
-          console.log("Channel:", channel.name);
-          console.log("Current user:", currentUser?.id);
-          console.log("Channel owner:", channel.owner?._id);
-          console.log("Channel members:", channel.members);
-
-          // Add action buttons
           if (currentUser) {
-            if (channel.owner._id === currentUser.id) {
+            const isOwner = channel.owner._id === currentUser.id;
+            const isMember = channel.members
+              .map((m) => m.toString())
+              .includes(currentUser.id);
+
+            if (isOwner) {
               // Owner sees delete button
               const deleteButton = document.createElement("button");
               deleteButton.className = "room-action-button delete-button";
@@ -1235,23 +1238,149 @@
                 }
               };
               roomDiv.appendChild(deleteButton);
-            } else if (channel.members.includes(currentUser.id)) {
-              // Member (not owner) sees leave button
-              const leaveButton = document.createElement("button");
-              leaveButton.className = "room-action-button leave-button";
-              leaveButton.textContent = "Leave";
-              leaveButton.onclick = (e) => {
+            } else if (channel.isPublic) {
+              // Public room - show Join or Leave button based on membership
+              const actionButton = document.createElement("button");
+              actionButton.className =
+                "room-action-button " +
+                (isMember ? "leave-button" : "join-button");
+              actionButton.textContent = isMember ? "Leave" : "Join";
+
+              actionButton.onclick = async (e) => {
                 e.stopPropagation();
-                if (confirm("Are you sure you want to leave this channel?")) {
-                  leaveRoom(channel._id);
+                try {
+                  const token = localStorage.getItem("token");
+                  const endpoint = isMember ? `leave` : `join`;
+
+                  if (
+                    !confirm(
+                      `Are you sure you want to ${endpoint} this channel?`
+                    )
+                  ) {
+                    return;
+                  }
+
+                  const response = await fetch(
+                    `/api/channels/${channel._id}/${endpoint}`,
+                    {
+                      method: "POST",
+                      headers: {
+                        Authorization: token,
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                      },
+                    }
+                  );
+
+                  if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(
+                      errorData.error || `Failed to ${endpoint} channel`
+                    );
+                  }
+
+                  // Switch room types and update UI
+                  const myRoomsBtn = document.querySelector(
+                    '.room-type-btn[data-type="my"]'
+                  );
+                  const publicRoomsBtn = document.querySelector(
+                    '.room-type-btn[data-type="public"]'
+                  );
+
+                  if (endpoint === "join") {
+                    // Switch to My Rooms
+                    if (myRoomsBtn && publicRoomsBtn) {
+                      myRoomsBtn.classList.add("active");
+                      publicRoomsBtn.classList.remove("active");
+                      loadMyRooms();
+                    }
+                  } else {
+                    // If leaving, reset room view if we're in it
+                    if (currentRoom === channel._id) {
+                      currentRoom = null;
+                      document.getElementById(
+                        "no-room-selected"
+                      ).style.display = "flex";
+                      document.getElementById("room-chat").style.display =
+                        "none";
+                      document.querySelector(".messages-history").innerHTML =
+                        "";
+                      document.querySelector(".room-title").textContent = "";
+                    }
+
+                    // Switch to Public Rooms
+                    if (myRoomsBtn && publicRoomsBtn) {
+                      myRoomsBtn.classList.remove("active");
+                      publicRoomsBtn.classList.add("active");
+                      loadPublicRooms();
+                    }
+                  }
+                } catch (error) {
+                  console.error(
+                    `Error ${isMember ? "leaving" : "joining"} channel:`,
+                    error
+                  );
+                  alert(
+                    error.message ||
+                      `Failed to ${
+                        isMember ? "leave" : "join"
+                      } channel. Please try again.`
+                  );
                 }
               };
-              roomDiv.appendChild(leaveButton);
+              roomDiv.appendChild(actionButton);
             }
           }
 
           roomList.appendChild(roomDiv);
         });
+      }
+
+      // Make sure your HTML has these tab elements:
+      // <button id="myRoomsTab" onclick="showMyRooms()">My Rooms</button>
+      // <button id="publicRoomsTab" onclick="showPublicRooms()">Public Rooms</button>
+
+      // Add these functions to handle tab switching
+      function showMyRooms() {
+        document.getElementById("myRoomsTab").classList.add("active");
+        document.getElementById("publicRoomsTab").classList.remove("active");
+        loadMyRooms();
+      }
+
+      function showPublicRooms() {
+        document.getElementById("publicRoomsTab").classList.add("active");
+        document.getElementById("myRoomsTab").classList.remove("active");
+        loadPublicRooms();
+      }
+
+      async function loadMyRooms() {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch("/api/channels/my", {
+            headers: {
+              Authorization: token,
+            },
+          });
+          const channels = await response.json();
+          displayRooms(channels);
+        } catch (error) {
+          console.error("Error loading my rooms:", error);
+        }
+      }
+
+      async function loadPublicRooms() {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch("/api/channels/public", {
+            headers: {
+              Authorization: token,
+            },
+          });
+          const channels = await response.json();
+          displayRooms(channels);
+        } catch (error) {
+          console.error("Error loading public rooms:", error);
+        }
       }
 
       async function selectRoom(roomId, roomName) {
@@ -1261,7 +1390,7 @@
         }
 
         try {
-          // Check if channel still exists before joining
+          // Check if channel exists
           const token = localStorage.getItem("token");
           const response = await fetch(`/api/channels/${roomId}/check`, {
             headers: {
@@ -1270,36 +1399,22 @@
           });
 
           if (response.status === 404) {
-            // Channel doesn't exist anymore
             alert("This channel is no longer available.");
-
-            // Reset current room
-            currentRoom = null;
-
-            // Reset the view to initial state
-            document.getElementById("no-room-selected").style.display = "flex";
-            document.getElementById("room-chat").style.display = "none";
-
-            // Clear messages and room title
-            document.querySelector(".messages-history").innerHTML = "";
-            document.querySelector(".room-title").textContent = "";
-
-            // Clear the message input
-            const messageInput = document.querySelector("#message-input");
-            if (messageInput) {
-              messageInput.value = "";
-            }
-
-            // Remove the channel from the list immediately
-            const channelElement = document.querySelector(
+            const channelElements = document.querySelectorAll(
               `[data-room-id="${roomId}"]`
             );
-            if (channelElement) {
-              channelElement.remove();
-            }
+            channelElements.forEach((element) => {
+              element.remove();
+            });
 
-            // Refresh the rooms list
-            loadRooms();
+            if (currentRoom === roomId) {
+              currentRoom = null;
+              document.getElementById("no-room-selected").style.display =
+                "flex";
+              document.getElementById("room-chat").style.display = "none";
+              document.querySelector(".messages-history").innerHTML = "";
+              document.querySelector(".room-title").textContent = "";
+            }
             return;
           }
 
@@ -1307,24 +1422,15 @@
             throw new Error("Failed to check channel status");
           }
 
-          // Channel exists, proceed with joining
           currentRoom = roomId;
-
-          // Hide no-room message and show chat interface
           document.getElementById("no-room-selected").style.display = "none";
           document.getElementById("room-chat").style.display = "flex";
-
-          // Update room header
           document.querySelector(".room-title").textContent = roomName;
 
-          // Clear messages and request history from server
           const messagesHistory = document.querySelector(".messages-history");
           messagesHistory.innerHTML = "";
 
-          // Request message history from server
           socket.emit("get-message-history", { roomId });
-
-          // Join room via socket
           socket.emit("join", {
             username: userData?.username,
             roomId: currentRoom,

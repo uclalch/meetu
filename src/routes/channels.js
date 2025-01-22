@@ -35,31 +35,37 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// Get user's channels
+// Get user's channels - show rooms user owns or is a member of
 router.get("/my", auth, async (req, res) => {
   try {
     const channels = await Channel.find({
-      members: req.user._id,
+      $or: [
+        { owner: req.user._id }, // Rooms user owns
+        { members: req.user._id }, // Rooms user is a member of
+      ],
     })
       .populate("owner", "username")
       .sort({ createdAt: -1 });
     res.json(channels);
   } catch (error) {
+    console.error("Error fetching user channels:", error);
     res.status(500).json({ error: "Failed to fetch channels" });
   }
 });
 
-// Get public channels
+// Get public channels - show only public rooms user is NOT a member of
 router.get("/public", auth, async (req, res) => {
   try {
     const channels = await Channel.find({
       isPublic: true,
-      members: { $ne: req.user._id }, // Don't show channels user is already in
+      members: { $ne: req.user._id }, // Keep this filter to exclude rooms user is in
+      owner: { $ne: req.user._id }, // Also exclude rooms user owns
     })
       .populate("owner", "username")
       .sort({ createdAt: -1 });
     res.json(channels);
   } catch (error) {
+    console.error("Error fetching public channels:", error);
     res.status(500).json({ error: "Failed to fetch channels" });
   }
 });
@@ -73,13 +79,11 @@ router.post("/:id/join", auth, async (req, res) => {
       return res.status(404).json({ error: "Channel not found" });
     }
 
-    if (
-      !channel.isPublic &&
-      channel.owner.toString() !== req.user._id.toString()
-    ) {
+    if (!channel.isPublic) {
       return res.status(403).json({ error: "Cannot join private channel" });
     }
 
+    // Add user to members if not already a member
     if (!channel.members.includes(req.user._id)) {
       channel.members.push(req.user._id);
       await channel.save();
@@ -88,6 +92,7 @@ router.post("/:id/join", auth, async (req, res) => {
     await channel.populate("owner", "username");
     res.json(channel);
   } catch (error) {
+    console.error("Error joining channel:", error);
     res.status(500).json({ error: "Failed to join channel" });
   }
 });
@@ -145,9 +150,10 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
-// Leave channel
+// Add or update the leave channel route
 router.post("/:id/leave", auth, async (req, res) => {
   try {
+    console.log("Leave request for channel:", req.params.id);
     const channel = await Channel.findById(req.params.id);
 
     if (!channel) {
@@ -156,21 +162,38 @@ router.post("/:id/leave", auth, async (req, res) => {
 
     // Can't leave if you're the owner
     if (channel.owner.toString() === req.user._id.toString()) {
-      return res.status(403).json({
-        error: "Channel owner cannot leave. Delete the channel instead.",
-      });
+      return res
+        .status(403)
+        .json({
+          error: "Channel owner cannot leave. Delete the channel instead.",
+        });
     }
 
-    // Remove user from members
+    console.log("Current members:", channel.members);
+    console.log("User trying to leave:", req.user._id);
+
+    // Remove user from members array
     channel.members = channel.members.filter(
       (memberId) => memberId.toString() !== req.user._id.toString()
     );
 
+    console.log("Members after removal:", channel.members);
+
     await channel.save();
-    res.json({ message: "Left channel successfully" });
+
+    // Populate owner info before sending response
+    await channel.populate("owner", "username");
+
+    res.json({
+      message: "Left channel successfully",
+      channel: channel,
+    });
   } catch (error) {
     console.error("Error leaving channel:", error);
-    res.status(500).json({ error: "Failed to leave channel" });
+    res.status(500).json({
+      error: "Failed to leave channel",
+      details: error.message,
+    });
   }
 });
 
