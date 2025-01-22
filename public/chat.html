@@ -870,31 +870,27 @@
         socket.on("channel deleted", (channelId) => {
           console.log("Received channel deleted event:", channelId);
 
-          // If user is currently in the deleted channel, remove them
+          // If user is currently in the deleted channel, reset everything
           if (currentRoom === channelId) {
             // Reset current room
             currentRoom = null;
 
-            // Hide chat interface and show no-room message
-            document.getElementById("room-chat").style.display = "none";
+            // Reset the view to initial state - using the same display styles
             document.getElementById("no-room-selected").style.display = "flex";
+            document.getElementById("room-chat").style.display = "none";
 
-            // Clear room name
-            const roomNameElement = document.getElementById("room-name");
-            if (roomNameElement) {
-              roomNameElement.textContent = "";
+            // Clear messages and room title
+            document.querySelector(".messages-history").innerHTML = "";
+            document.querySelector(".room-title").textContent = "";
+
+            // Clear the message input
+            const messageInput = document.querySelector("#message-input");
+            if (messageInput) {
+              messageInput.value = "";
             }
 
             // Alert the user
             alert("This channel has been deleted by the owner.");
-          }
-
-          // Remove the channel from the list
-          const channelElement = document.querySelector(
-            `[data-room-id="${channelId}"]`
-          );
-          if (channelElement) {
-            channelElement.remove();
           }
 
           // Refresh the rooms list
@@ -1194,6 +1190,7 @@
       function displayRooms(channels) {
         const roomList = document.getElementById("roomList");
         roomList.innerHTML = "";
+        const currentUser = JSON.parse(localStorage.getItem("user"));
 
         channels.forEach((channel) => {
           const roomDiv = document.createElement("div");
@@ -1218,42 +1215,39 @@
 
           roomDiv.appendChild(roomInfoDiv);
 
-          // Add action button if user is owner or member
-          const currentUser = JSON.parse(localStorage.getItem("user"));
+          // Debug logs
+          console.log("Channel:", channel.name);
+          console.log("Current user:", currentUser?.id);
+          console.log("Channel owner:", channel.owner?._id);
+          console.log("Channel members:", channel.members);
 
-          // Fix the ID comparison here
-          if (
-            currentUser &&
-            channel.owner &&
-            channel.owner._id === currentUser.id
-          ) {
-            // Changed from currentUser._id to currentUser.id
-            const deleteButton = document.createElement("button");
-            deleteButton.className = "room-action-button delete-button";
-            deleteButton.textContent = "Delete";
-            deleteButton.onclick = (e) => {
-              e.stopPropagation();
-              if (confirm("Are you sure you want to delete this channel?")) {
-                deleteRoom(channel._id);
-              }
-            };
-            roomDiv.appendChild(deleteButton);
-          } else if (
-            currentUser &&
-            channel.members &&
-            channel.members.includes(currentUser.id)
-          ) {
-            // Changed from currentUser._id to currentUser.id
-            const leaveButton = document.createElement("button");
-            leaveButton.className = "room-action-button leave-button";
-            leaveButton.textContent = "Leave";
-            leaveButton.onclick = (e) => {
-              e.stopPropagation();
-              if (confirm("Are you sure you want to leave this channel?")) {
-                leaveRoom(channel._id);
-              }
-            };
-            roomDiv.appendChild(leaveButton);
+          // Add action buttons
+          if (currentUser) {
+            if (channel.owner._id === currentUser.id) {
+              // Owner sees delete button
+              const deleteButton = document.createElement("button");
+              deleteButton.className = "room-action-button delete-button";
+              deleteButton.textContent = "Delete";
+              deleteButton.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm("Are you sure you want to delete this channel?")) {
+                  deleteRoom(channel._id);
+                }
+              };
+              roomDiv.appendChild(deleteButton);
+            } else if (channel.members.includes(currentUser.id)) {
+              // Member (not owner) sees leave button
+              const leaveButton = document.createElement("button");
+              leaveButton.className = "room-action-button leave-button";
+              leaveButton.textContent = "Leave";
+              leaveButton.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm("Are you sure you want to leave this channel?")) {
+                  leaveRoom(channel._id);
+                }
+              };
+              roomDiv.appendChild(leaveButton);
+            }
           }
 
           roomList.appendChild(roomDiv);
@@ -1278,6 +1272,23 @@
           if (response.status === 404) {
             // Channel doesn't exist anymore
             alert("This channel is no longer available.");
+
+            // Reset current room
+            currentRoom = null;
+
+            // Reset the view to initial state
+            document.getElementById("no-room-selected").style.display = "flex";
+            document.getElementById("room-chat").style.display = "none";
+
+            // Clear messages and room title
+            document.querySelector(".messages-history").innerHTML = "";
+            document.querySelector(".room-title").textContent = "";
+
+            // Clear the message input
+            const messageInput = document.querySelector("#message-input");
+            if (messageInput) {
+              messageInput.value = "";
+            }
 
             // Remove the channel from the list immediately
             const channelElement = document.querySelector(
@@ -1346,7 +1357,14 @@
       // Modify the room functions to work with your channel system
       async function deleteRoom(roomId) {
         try {
+          console.log("Attempting to delete room:", roomId);
           const token = localStorage.getItem("token");
+
+          if (!token) {
+            console.error("No token found");
+            throw new Error("Authentication required");
+          }
+
           const response = await fetch(`/api/channels/${roomId}`, {
             method: "DELETE",
             headers: {
@@ -1355,26 +1373,49 @@
             },
           });
 
+          console.log("Delete response status:", response.status);
+
+          const data = await response.json();
+          console.log("Delete response data:", data);
+
           if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || "Failed to delete channel");
+            throw new Error(
+              data.error || data.details || "Failed to delete channel"
+            );
           }
 
-          // Emit the delete event through socket
-          socket.emit("channel deleted", roomId);
+          // If deletion was successful
+          if (currentRoom === roomId) {
+            // Reset current room
+            currentRoom = null;
 
-          // Refresh the room list
+            // Reset the view to initial state
+            document.getElementById("no-room-selected").style.display = "flex";
+            document.getElementById("room-chat").style.display = "none";
+
+            // Clear messages and room title
+            document.querySelector(".messages-history").innerHTML = "";
+            document.querySelector(".room-title").textContent = "";
+
+            // Clear the message input
+            const messageInput = document.querySelector("#message-input");
+            if (messageInput) {
+              messageInput.value = "";
+            }
+          }
+
+          // Refresh the rooms list
           loadRooms();
         } catch (error) {
           console.error("Error deleting room:", error);
-          alert("Failed to delete channel: " + error.message);
+          alert(error.message || "Failed to delete channel");
         }
       }
 
-      async function leaveRoom(roomId) {
+      async function leaveRoom(channelId) {
         try {
           const token = localStorage.getItem("token");
-          const response = await fetch(`/api/channels/${roomId}/leave`, {
+          const response = await fetch(`/api/channels/${channelId}/leave`, {
             method: "POST",
             headers: {
               Authorization: token,
@@ -1383,15 +1424,34 @@
           });
 
           if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data.error || "Failed to leave channel");
+            throw new Error("Failed to leave channel");
           }
 
-          // Refresh the room list after successfully leaving
+          // If user is currently in the channel they're leaving
+          if (currentRoom === channelId) {
+            // Reset current room
+            currentRoom = null;
+
+            // Reset the view to initial state - using the same display styles
+            document.getElementById("no-room-selected").style.display = "flex";
+            document.getElementById("room-chat").style.display = "none";
+
+            // Clear messages and room title
+            document.querySelector(".messages-history").innerHTML = "";
+            document.querySelector(".room-title").textContent = "";
+
+            // Clear the message input
+            const messageInput = document.querySelector("#message-input");
+            if (messageInput) {
+              messageInput.value = "";
+            }
+          }
+
+          // Refresh the rooms list
           loadRooms();
         } catch (error) {
           console.error("Error leaving room:", error);
-          alert(error.message);
+          alert("Failed to leave channel: " + error.message);
         }
       }
     </script>

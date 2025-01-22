@@ -95,44 +95,52 @@ router.post("/:id/join", auth, async (req, res) => {
 // Delete channel
 router.delete("/:id", auth, async (req, res) => {
   try {
-    console.log("Attempting to delete channel:", req.params.id); // Debug log
+    console.log("Delete request for channel:", req.params.id);
+    console.log("User making request:", req.user._id);
 
     const channel = await Channel.findById(req.params.id);
-    console.log("Found channel:", channel); // Debug log
+    console.log("Found channel:", channel);
 
     if (!channel) {
+      console.log("Channel not found");
       return res.status(404).json({ error: "Channel not found" });
     }
 
-    // Debug logs for ownership check
+    // Debug ownership check
     console.log("Channel owner:", channel.owner.toString());
     console.log("Current user:", req.user._id.toString());
+    console.log(
+      "Is owner?",
+      channel.owner.toString() === req.user._id.toString()
+    );
 
     // Check if the current user is the owner
     if (channel.owner.toString() !== req.user._id.toString()) {
+      console.log("User is not the owner");
       return res
         .status(403)
         .json({ error: "Only the channel owner can delete the channel" });
     }
 
-    // Delete the channel
     const deletedChannel = await Channel.findByIdAndDelete(req.params.id);
-    console.log("Channel deleted:", deletedChannel); // Debug log
+    console.log("Channel deleted:", deletedChannel);
 
-    // Emit socket event for channel deletion
-    if (req.app.get("io")) {
-      req.app.get("io").emit("channel deleted", channel._id);
-      console.log("Emitted channel deleted event"); // Debug log
+    // Check if socket.io is available
+    const io = req.app.get("io");
+    if (io) {
+      console.log("Emitting channel deleted event");
+      io.emit("channel deleted", channel._id);
     } else {
-      console.log("Socket.io not initialized"); // Debug log
+      console.log("Socket.io not initialized");
     }
 
     res.json({ message: "Channel deleted successfully" });
   } catch (error) {
-    console.error("Error details:", error); // Detailed error log
+    console.error("Detailed error:", error);
     res.status(500).json({
       error: "Failed to delete channel",
       details: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 });
