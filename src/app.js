@@ -1,0 +1,9 @@
+// ... existing requires ...
+const roomRoutes = require("./routes/room");
+
+// ... existing middleware ...
+
+// Add the room routes
+app.use("/api/rooms", roomRoutes);
+
+// ... rest of your app.js code ...

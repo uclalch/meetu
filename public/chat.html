@@ -499,13 +499,24 @@
         margin-top: 0;
       }
 
+      .room-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+      }
+
       .room-item {
         padding: 15px;
         border-radius: 8px;
         background: white;
-        margin-bottom: 10px;
         cursor: pointer;
         transition: background-color 0.2s;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
 
       .room-item:hover {
@@ -513,9 +524,28 @@
       }
 
       .room-info {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
+        flex: 1;
+        margin-right: 60px; /* Space for button */
+      }
+
+      .room-action-button {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 1;
+        color: white;
+        background-color: #667eea;
+      }
+
+      .room-action-button:hover {
+        background-color: #5a6fd6;
       }
 
       .room-name {
@@ -646,6 +676,20 @@
 
       .status.disconnected {
         color: #f87171;
+      }
+
+      .action-button {
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: none;
+        background-color: #dc3545;
+        color: white;
+        cursor: pointer;
+        margin-left: 8px;
+      }
+
+      .action-button:hover {
+        background-color: #c82333;
       }
     </style>
   </head>
@@ -1088,12 +1132,11 @@
 
           const response = await fetch(endpoint, {
             headers: {
-              Authorization: token, // Send token as is
+              Authorization: token,
             },
           });
 
           if (response.status === 401) {
-            // Token expired or invalid
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "/login";
@@ -1121,21 +1164,63 @@
         channels.forEach((channel) => {
           const roomDiv = document.createElement("div");
           roomDiv.className = "room-item";
-          roomDiv.onclick = () => selectRoom(channel._id, channel.name);
           roomDiv.dataset.roomId = channel._id;
 
-          roomDiv.innerHTML = `
-            <div class="room-info">
+          // Create the main room info container
+          const roomInfoDiv = document.createElement("div");
+          roomInfoDiv.className = "room-info";
+          roomInfoDiv.onclick = () => selectRoom(channel._id, channel.name);
+
+          roomInfoDiv.innerHTML = `
               <div class="room-name">${channel.name}</div>
               <div class="room-description">${channel.description || ""}</div>
               <div class="room-details">
-                <span class="room-owner">Created by ${
-                  channel.owner.username
-                }</span>
-                <span class="room-hash">#${channel.hash}</span>
+                  <span class="room-owner">Created by ${
+                    channel.owner.username
+                  }</span>
+                  <span class="room-hash">#${channel.hash}</span>
               </div>
-            </div>
           `;
+
+          roomDiv.appendChild(roomInfoDiv);
+
+          // Add action button if user is owner or member
+          const currentUser = JSON.parse(localStorage.getItem("user"));
+
+          // Fix the ID comparison here
+          if (
+            currentUser &&
+            channel.owner &&
+            channel.owner._id === currentUser.id
+          ) {
+            // Changed from currentUser._id to currentUser.id
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "room-action-button delete-button";
+            deleteButton.textContent = "Delete";
+            deleteButton.onclick = (e) => {
+              e.stopPropagation();
+              if (confirm("Are you sure you want to delete this channel?")) {
+                deleteRoom(channel._id);
+              }
+            };
+            roomDiv.appendChild(deleteButton);
+          } else if (
+            currentUser &&
+            channel.members &&
+            channel.members.includes(currentUser.id)
+          ) {
+            // Changed from currentUser._id to currentUser.id
+            const leaveButton = document.createElement("button");
+            leaveButton.className = "room-action-button leave-button";
+            leaveButton.textContent = "Leave";
+            leaveButton.onclick = (e) => {
+              e.stopPropagation();
+              if (confirm("Are you sure you want to leave this channel?")) {
+                leaveRoom(channel._id);
+              }
+            };
+            roomDiv.appendChild(leaveButton);
+          }
 
           roomList.appendChild(roomDiv);
         });
@@ -1182,6 +1267,61 @@
       document.querySelector(".send-btn")?.addEventListener("click", () => {
         sendMessage();
       });
+
+      // Update the getCurrentUser function to use your localStorage
+      function getCurrentUser() {
+        const userJson = localStorage.getItem("user");
+        return userJson ? JSON.parse(userJson) : null;
+      }
+
+      // Modify the room functions to work with your channel system
+      async function deleteRoom(roomId) {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(`/api/channels/${roomId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || "Failed to delete channel");
+          }
+
+          // Refresh the room list after successful deletion
+          loadRooms();
+        } catch (error) {
+          console.error("Error deleting room:", error);
+          alert(error.message);
+        }
+      }
+
+      async function leaveRoom(roomId) {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(`/api/channels/${roomId}/leave`, {
+            method: "POST",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || "Failed to leave channel");
+          }
+
+          // Refresh the room list after successfully leaving
+          loadRooms();
+        } catch (error) {
+          console.error("Error leaving room:", error);
+          alert(error.message);
+        }
+      }
     </script>
   </body>
 </html>
