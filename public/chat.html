@@ -1205,9 +1205,16 @@
           // Create the main room info container
           const roomInfoDiv = document.createElement("div");
           roomInfoDiv.className = "room-info";
-          if (isMember || isOwner) {
-            roomInfoDiv.onclick = () => selectRoom(channel._id, channel.name);
-          }
+
+          // Check membership and ownership
+          const isMember = channel.members.some(
+            (memberId) => memberId.toString() === currentUser.id
+          );
+          const isOwner = channel.owner._id === currentUser.id;
+
+          // Add click handler for room selection
+          // IMPORTANT: Remove the membership check for room creation
+          roomInfoDiv.onclick = () => selectRoom(channel._id, channel.name);
 
           roomInfoDiv.innerHTML = `
               <div class="room-name">${channel.name}</div>
@@ -1223,11 +1230,6 @@
           roomDiv.appendChild(roomInfoDiv);
 
           if (currentUser) {
-            const isOwner = channel.owner._id === currentUser.id;
-            const isMember = channel.members
-              .map((m) => m.toString())
-              .includes(currentUser.id);
-
             if (isOwner) {
               // Owner sees delete button
               const deleteButton = document.createElement("button");
@@ -1338,23 +1340,73 @@
         });
       }
 
-      // Make sure your HTML has these tab elements:
-      // <button id="myRoomsTab" onclick="showMyRooms()">My Rooms</button>
-      // <button id="publicRoomsTab" onclick="showPublicRooms()">Public Rooms</button>
+      // Update selectRoom function to handle permissions
+      async function selectRoom(roomId, roomName) {
+        if (!roomId) {
+          console.error("Invalid room ID");
+          return;
+        }
 
-      // Add these functions to handle tab switching
-      function showMyRooms() {
-        document.getElementById("myRoomsTab").classList.add("active");
-        document.getElementById("publicRoomsTab").classList.remove("active");
-        loadMyRooms();
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(`/api/channels/${roomId}`, {
+            headers: {
+              Authorization: token,
+              Accept: "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to get channel details");
+          }
+
+          const channelData = await response.json();
+          const currentUser = JSON.parse(localStorage.getItem("user"));
+
+          const isMember = channelData.members.some(
+            (memberId) => memberId.toString() === currentUser.id.toString()
+          );
+          const isOwner = channelData.owner._id === currentUser.id;
+
+          // Check if we're in My Rooms or Public Rooms
+          const myRoomsBtn = document.querySelector(
+            '.room-type-btn[data-type="my"]'
+          );
+          const isInMyRooms = myRoomsBtn?.classList.contains("active");
+
+          if (isInMyRooms) {
+            // In My Rooms - allow access
+            currentRoom = roomId;
+            document.getElementById("no-room-selected").style.display = "none";
+            document.getElementById("room-chat").style.display = "flex";
+            document.querySelector(".room-title").textContent = roomName;
+
+            const messagesHistory = document.querySelector(".messages-history");
+            messagesHistory.innerHTML = "";
+
+            socket.emit("get-message-history", { roomId });
+            socket.emit("join", {
+              username: userData?.username,
+              roomId: currentRoom,
+            });
+
+            // Update active room styling
+            document.querySelectorAll(".room-item").forEach((item) => {
+              item.classList.remove("active");
+              if (item.dataset.roomId === roomId) {
+                item.classList.add("active");
+              }
+            });
+          } else {
+            // In Public Rooms - do nothing when clicking room body
+            return;
+          }
+        } catch (error) {
+          console.error("Error in selectRoom:", error);
+        }
       }
 
-      function showPublicRooms() {
-        document.getElementById("publicRoomsTab").classList.add("active");
-        document.getElementById("myRoomsTab").classList.remove("active");
-        loadPublicRooms();
-      }
-
+      // Add these functions if they don't exist
       async function loadMyRooms() {
         try {
           const token = localStorage.getItem("token");
@@ -1382,72 +1434,6 @@
           displayRooms(channels);
         } catch (error) {
           console.error("Error loading public rooms:", error);
-        }
-      }
-
-      async function selectRoom(roomId, roomName) {
-        if (!roomId) {
-          console.error("Invalid room ID");
-          return;
-        }
-
-        try {
-          // Check if channel exists
-          const token = localStorage.getItem("token");
-          const response = await fetch(`/api/channels/${roomId}/check`, {
-            headers: {
-              Authorization: token,
-            },
-          });
-
-          if (response.status === 404) {
-            alert("This channel is no longer available.");
-            const channelElements = document.querySelectorAll(
-              `[data-room-id="${roomId}"]`
-            );
-            channelElements.forEach((element) => {
-              element.remove();
-            });
-
-            if (currentRoom === roomId) {
-              currentRoom = null;
-              document.getElementById("no-room-selected").style.display =
-                "flex";
-              document.getElementById("room-chat").style.display = "none";
-              document.querySelector(".messages-history").innerHTML = "";
-              document.querySelector(".room-title").textContent = "";
-            }
-            return;
-          }
-
-          if (!response.ok) {
-            throw new Error("Failed to check channel status");
-          }
-
-          currentRoom = roomId;
-          document.getElementById("no-room-selected").style.display = "none";
-          document.getElementById("room-chat").style.display = "flex";
-          document.querySelector(".room-title").textContent = roomName;
-
-          const messagesHistory = document.querySelector(".messages-history");
-          messagesHistory.innerHTML = "";
-
-          socket.emit("get-message-history", { roomId });
-          socket.emit("join", {
-            username: userData?.username,
-            roomId: currentRoom,
-          });
-
-          // Update active room styling
-          document.querySelectorAll(".room-item").forEach((item) => {
-            item.classList.remove("active");
-            if (item.dataset.roomId === roomId) {
-              item.classList.add("active");
-            }
-          });
-        } catch (error) {
-          console.error("Error selecting room:", error);
-          alert("Failed to join channel. Please try again.");
         }
       }
 

@@ -162,11 +162,9 @@ router.post("/:id/leave", auth, async (req, res) => {
 
     // Can't leave if you're the owner
     if (channel.owner.toString() === req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({
-          error: "Channel owner cannot leave. Delete the channel instead.",
-        });
+      return res.status(403).json({
+        error: "Channel owner cannot leave. Delete the channel instead.",
+      });
     }
 
     console.log("Current members:", channel.members);
@@ -210,6 +208,24 @@ router.get("/:id/check", auth, async (req, res) => {
   } catch (error) {
     console.error("Error checking channel:", error);
     res.status(500).json({ error: "Failed to check channel status" });
+  }
+});
+
+// Get a specific channel
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const channel = await Channel.findById(req.params.id)
+      .populate("owner", "username")
+      .populate("members", "username");
+
+    if (!channel) {
+      return res.status(404).json({ error: "Channel not found" });
+    }
+
+    res.json(channel);
+  } catch (error) {
+    console.error("Error getting channel:", error);
+    res.status(500).json({ error: "Failed to get channel details" });
   }
 });
 

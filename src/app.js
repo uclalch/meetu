@@ -5,6 +5,7 @@ const app = express();
 const http = require("http");
 const server = http.createServer(app);
 const io = require("socket.io")(server);
+const channelsRouter = require("./routes/channels");
 
 // Store io instance in app
 app.set("io", io);
@@ -31,6 +32,9 @@ io.on("connection", (socket) => {
 
 // Add the room routes
 app.use("/api/rooms", roomRoutes);
+
+// Add the channels routes
+app.use("/api/channels", channelsRouter);
 
 // ... rest of your app.js code ...
 
