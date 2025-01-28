@@ -1205,7 +1205,9 @@
           // Create the main room info container
           const roomInfoDiv = document.createElement("div");
           roomInfoDiv.className = "room-info";
-          roomInfoDiv.onclick = () => selectRoom(channel._id, channel.name);
+          if (isMember || isOwner) {
+            roomInfoDiv.onclick = () => selectRoom(channel._id, channel.name);
+          }
 
           roomInfoDiv.innerHTML = `
               <div class="room-name">${channel.name}</div>
