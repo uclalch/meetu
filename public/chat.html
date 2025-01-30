@@ -691,6 +691,218 @@
       .action-button:hover {
         background-color: #c82333;
       }
+
+      .friend-sidebar {
+        width: 200px;
+        background: #f5f5f5;
+        border-right: 1px solid #ddd;
+        padding: 15px;
+        height: 100%;
+        overflow-y: auto;
+      }
+
+      .rooms-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .add-friend-btn {
+        background: #8b6bf2;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        line-height: 1;
+      }
+
+      .add-friend-btn:hover {
+        background: #7451f0;
+      }
+
+      .no-friend-message {
+        text-align: center;
+        color: #888;
+        margin-top: 20px;
+      }
+
+      .no-friend-message h2 {
+        font-size: 14px;
+        font-weight: normal;
+      }
+
+      .divider {
+        height: 1px;
+        background: #ddd;
+        margin: 10px 0;
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        font-size: 1.5em;
+        color: #333;
+      }
+
+      .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: #555;
+      }
+
+      .modal-body {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .modal-body input[type="email"],
+      .modal-body input[type="text"] {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      .modal-body button {
+        background: #8b6bf2;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .modal-body button:hover {
+        background: #7451f0;
+      }
+
+      /* Friend Chat Specific Styles */
+      #friendChatMessages {
+        height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .chat-input {
+        display: flex;
+        gap: 10px;
+      }
+
+      .chat-input input {
+        flex: 1;
+      }
+
+      /* Add these styles to your existing CSS */
+      .friend-item {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .friend-item:hover {
+        background-color: #f0f0f0;
+      }
+
+      .friend-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .friend-name {
+        font-weight: 500;
+      }
+
+      .friend-status {
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 10px;
+      }
+
+      .friend-status.online {
+        background-color: #4caf50;
+        color: white;
+      }
+
+      .friend-status.offline {
+        background-color: #9e9e9e;
+        color: white;
+      }
+
+      #friendsList {
+        margin-top: 10px;
+      }
+
+      .friend-item {
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .friend-item:hover {
+        background-color: #e0e0e0;
+      }
+
+      .no-friend-message {
+        text-align: center;
+        color: #888;
+        margin-top: 20px;
+      }
+
+      .no-friend-message h2 {
+        font-size: 14px;
+        font-weight: normal;
+      }
     </style>
   </head>
   <body>
@@ -750,6 +962,22 @@
           <!-- Rooms will be populated here -->
         </div>
       </div>
+      <div class="friend-sidebar">
+        <!-- Rooms Section -->
+        <div class="rooms-header">
+          <h2>Friends</h2>
+          <button class="add-friend-btn" onclick="openModal('addFriendModal')">
+            +
+          </button>
+        </div>
+        <div class="friend-requests">
+          <div id="pendingRequests"></div>
+        </div>
+        <div class="divider"></div>
+        <div id="friendsList">
+          <!-- Friends will be loaded here -->
+        </div>
+      </div>
 
       <!-- Main Content Area -->
       <div class="main-content">
@@ -805,6 +1033,45 @@
             <button type="submit">Create</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Add Friend Modal -->
+    <div id="addFriendModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Send Friend Request</h2>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <input
+            type="email"
+            id="friendEmail"
+            placeholder="Enter friend's email"
+          />
+          <button id="sendRequestBtn">Send Request</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Friend Chat Modal -->
+    <div id="friendChatModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="friendChatTitle">Chat with <span id="friendName"></span></h2>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div id="friendChatMessages" class="chat-messages"></div>
+          <div class="chat-input">
+            <input
+              type="text"
+              id="friendMessageInput"
+              placeholder="Type a message..."
+            />
+            <button id="sendFriendMessageBtn">Send</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1548,6 +1815,226 @@
           alert("Failed to leave channel: " + error.message);
         }
       }
+
+      // Modal handling functions
+      function openModal(modalId) {
+        document.getElementById(modalId).style.display = "block";
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+      }
+
+      // Add friend functionality
+      async function addFriend() {
+        try {
+          const email = document.getElementById("friendEmail").value.trim();
+          if (!email) {
+            alert("Please enter an email address");
+            return;
+          }
+
+          const token = localStorage.getItem("token");
+          if (!token) {
+            console.error("No token found");
+            throw new Error("Authentication required");
+          }
+
+          console.log("Adding friend with email:", email); // Debug log
+
+          const response = await fetch("/api/friends/add", {
+            method: "POST",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to add friend");
+          }
+
+          await loadFriends(); // Refresh friends list
+          closeModal("addFriendModal");
+          document.getElementById("friendEmail").value = ""; // Clear input
+        } catch (error) {
+          console.error("Error adding friend:", error);
+          alert(error.message);
+        }
+      }
+
+      // Friend chat functionality
+      let currentFriendChat = null;
+
+      function openFriendChat(friendId, friendName) {
+        currentFriendChat = friendId;
+        document.getElementById("friendName").textContent = friendName;
+        document.getElementById("friendChatMessages").innerHTML = ""; // Clear messages
+        openModal("friendChatModal");
+        loadFriendMessages(friendId);
+      }
+
+      async function loadFriendMessages(friendId) {
+        try {
+          const response = await fetch(`/api/messages/${friendId}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to load messages");
+          }
+
+          const messages = await response.json();
+          displayFriendMessages(messages);
+        } catch (error) {
+          console.error("Error loading messages:", error);
+        }
+      }
+
+      function displayFriendMessages(messages) {
+        const container = document.getElementById("friendChatMessages");
+        container.innerHTML = messages
+          .map(
+            (msg) => `
+          <div class="message ${
+            msg.sender === currentUserId ? "sent" : "received"
+          }">
+            <div class="message-content">${msg.text}</div>
+            <div class="message-time">${new Date(
+              msg.timestamp
+            ).toLocaleTimeString()}</div>
+          </div>
+        `
+          )
+          .join("");
+        container.scrollTop = container.scrollHeight;
+      }
+
+      async function sendFriendMessage() {
+        if (!currentFriendChat) return;
+
+        const input = document.getElementById("friendMessageInput");
+        const message = input.value.trim();
+        if (!message) return;
+
+        try {
+          const response = await fetch("/api/messages/send", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+              recipientId: currentFriendChat,
+              text: message,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to send message");
+          }
+
+          input.value = ""; // Clear input
+          await loadFriendMessages(currentFriendChat); // Reload messages
+        } catch (error) {
+          console.error("Error sending message:", error);
+          alert("Failed to send message");
+        }
+      }
+
+      // Event listeners
+      document.addEventListener("DOMContentLoaded", () => {
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+          if (event.target.classList.contains("modal")) {
+            event.target.style.display = "none";
+          }
+        };
+
+        // Add friend button click
+        document.querySelector(".add-friend-btn").onclick = () =>
+          openModal("addFriendModal");
+
+        // Close buttons
+        document.querySelectorAll(".close").forEach((btn) => {
+          btn.onclick = function () {
+            const modal = this.closest(".modal");
+            closeModal(modal.id);
+          };
+        });
+
+        // Add friend form submit
+        document.getElementById("sendRequestBtn").onclick = addFriend;
+
+        // Send message button
+        document.getElementById("sendFriendMessageBtn").onclick =
+          sendFriendMessage;
+
+        // Enter key in message input
+        document.getElementById("friendMessageInput").onkeypress = function (
+          e
+        ) {
+          if (e.key === "Enter") {
+            sendFriendMessage();
+          }
+        };
+      });
+
+      // Add this to your existing JavaScript
+      async function loadFriends() {
+        try {
+          console.log("Fetching friends...");
+          const response = await fetch("/api/friends", {
+            headers: {
+              Authorization: localStorage.getItem("token"),
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch friends");
+          }
+
+          const friends = await response.json();
+          console.log("Friends loaded:", friends);
+
+          // Get the friends container
+          const friendsContainer = document.getElementById("friendsList");
+
+          // Clear existing friends
+          friendsContainer.innerHTML = "";
+
+          // Add friends to the list
+          if (friends.length === 0) {
+            friendsContainer.innerHTML =
+              '<div class="no-friend-message"><h2>No friends yet</h2></div>';
+          } else {
+            friends.forEach((friend) => {
+              const friendElement = document.createElement("div");
+              friendElement.className = "friend-item";
+              friendElement.innerHTML = `
+                  <div class="friend-info">
+                      <span class="friend-name">${friend.username}</span>
+                      <span class="friend-status ${friend.status}">${friend.status}</span>
+                  </div>
+              `;
+              friendElement.onclick = () =>
+                openFriendChat(friend._id, friend.username);
+              friendsContainer.appendChild(friendElement);
+            });
+          }
+        } catch (error) {
+          console.error("Error loading friends:", error);
+        }
+      }
+
+      // Call loadFriends when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        loadFriends();
+      });
     </script>
   </body>
 </html>

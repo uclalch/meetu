@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Channel = require("../models/Channel");
 const auth = require("../middleware/auth");
+const mongoose = require("mongoose");
 
 // Create new channel
 router.post("/", auth, async (req, res) => {
@@ -100,6 +101,10 @@ router.post("/:id/join", auth, async (req, res) => {
 // Delete channel
 router.delete("/:id", auth, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid channel ID format" });
+    }
+
     console.log("Delete request for channel:", req.params.id);
     console.log("User making request:", req.user._id);
 
@@ -212,9 +217,13 @@ router.get("/:id/check", auth, async (req, res) => {
 });
 
 // Get a specific channel
-router.get("/:id", auth, async (req, res) => {
+router.get("/:channelId", auth, async (req, res) => {
   try {
-    const channel = await Channel.findById(req.params.id)
+    if (!mongoose.Types.ObjectId.isValid(req.params.channelId)) {
+      return res.status(400).json({ error: "Invalid channel ID format" });
+    }
+
+    const channel = await Channel.findById(req.params.channelId)
       .populate("owner", "username")
       .populate("members", "username");
 

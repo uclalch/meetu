@@ -85,7 +85,8 @@ app.get("/chat", (req, res) => {
 app.get("/register", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/register.html"));
 });
-
+const friendsRoutes = require("./routes/friends");
+app.use("/api/friends", friendsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/channels", channelsRouter);
 
