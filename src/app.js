@@ -9,7 +9,6 @@ const channelsRouter = require("./routes/channels");
 const User = require("./models/User");
 const friendsRouter = require("./routes/friends");
 const auth = require("./middleware/auth");
-
 // Store io instance in app
 app.set("io", io);
 
@@ -22,7 +21,6 @@ app.use((req, res, next) => {
   });
   next();
 });
-
 // Your middleware
 app.use(express.json());
 app.use(express.static("public"));
@@ -55,7 +53,6 @@ app.use("/api/channels", channelsRouter);
 
 // Add this with your other app.use statements
 app.use("/api/friends", friendsRouter);
-
 // Log registered routes
 console.log("=== Registered Routes ===");
 app._router.stack.forEach((layer) => {

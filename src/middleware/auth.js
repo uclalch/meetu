@@ -21,9 +21,17 @@ const auth = async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // Set both formats to support all functionality
     req.user = {
-      userId: user._id,
+      _id: user._id, // For channels/rooms functionality
+      userId: user._id, // For friends functionality
       email: user.email,
+      username: user.username,
+      // Add any other needed user fields
+      friends: user.friends,
+      status: user.status,
+      // Keep the full user object as well
+      ...user.toObject(), // Include all user fields
     };
 
     next();

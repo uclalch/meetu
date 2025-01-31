@@ -106,51 +106,37 @@ router.delete("/:id", auth, async (req, res) => {
     }
 
     console.log("Delete request for channel:", req.params.id);
-    console.log("User making request:", req.user._id);
+    console.log("User making request:", req.user.userId);
 
     const channel = await Channel.findById(req.params.id);
-    console.log("Found channel:", channel);
-
     if (!channel) {
-      console.log("Channel not found");
       return res.status(404).json({ error: "Channel not found" });
     }
 
-    // Debug ownership check
-    console.log("Channel owner:", channel.owner.toString());
-    console.log("Current user:", req.user._id.toString());
-    console.log(
-      "Is owner?",
-      channel.owner.toString() === req.user._id.toString()
-    );
+    // Convert both IDs to strings for comparison
+    const channelOwnerId = channel.owner.toString();
+    const requestUserId = req.user.userId.toString();
 
-    // Check if the current user is the owner
-    if (channel.owner.toString() !== req.user._id.toString()) {
-      console.log("User is not the owner");
-      return res
-        .status(403)
-        .json({ error: "Only the channel owner can delete the channel" });
+    console.log("Channel owner ID:", channelOwnerId);
+    console.log("Request user ID:", requestUserId);
+
+    // Check if user is the owner
+    if (channelOwnerId !== requestUserId) {
+      return res.status(403).json({
+        error: "Only channel owner can delete channel",
+        ownerId: channelOwnerId,
+        userId: requestUserId,
+      });
     }
 
-    const deletedChannel = await Channel.findByIdAndDelete(req.params.id);
-    console.log("Channel deleted:", deletedChannel);
-
-    // Check if socket.io is available
-    const io = req.app.get("io");
-    if (io) {
-      console.log("Emitting channel deleted event");
-      io.emit("channel deleted", channel._id);
-    } else {
-      console.log("Socket.io not initialized");
-    }
-
+    await Channel.findByIdAndDelete(req.params.id);
     res.json({ message: "Channel deleted successfully" });
   } catch (error) {
-    console.error("Detailed error:", error);
+    console.error("Error deleting channel:", error);
     res.status(500).json({
       error: "Failed to delete channel",
       details: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      stack: error.stack,
     });
   }
 });
@@ -222,7 +208,6 @@ router.get("/:channelId", auth, async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.channelId)) {
       return res.status(400).json({ error: "Invalid channel ID format" });
     }
-
     const channel = await Channel.findById(req.params.channelId)
       .populate("owner", "username")
       .populate("members", "username");
