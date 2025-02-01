@@ -11,15 +11,24 @@ const {
   detectLanguage,
 } = require("./services/translationService");
 const channelsRouter = require("./routes/channels");
+const translateRouter = require("./routes/translate");
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = socketIO(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
+// Make io accessible to routes
+app.set("io", io);
 
 // MongoDB connection
 mongoose
@@ -32,34 +41,48 @@ mongoose
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("New client connected:", socket.id);
 
+  const userId = socket.handshake.auth.userId;
+  console.log("User connected:", userId);
+
+  // Store the socket id for the user
+  if (userId) {
+    socket.join(userId);
+  }
+
+  // Room chat handling
   socket.on("join", (data) => {
-    socket.join(data.channel);
-    console.log(`${data.username} joined ${data.channel}`);
+    console.log("Join event:", data);
+    if (data.roomId) {
+      socket.join(data.roomId);
+      // Notify room about new user
+      io.to(data.roomId).emit("user-joined", {
+        username: data.username,
+        userId: data.userId,
+      });
+    }
   });
 
-  socket.on("chat-message", async (message) => {
-    try {
-      // Detect language before broadcasting
-      const detectedLanguage = await detectLanguage(message.content);
-      message.language = detectedLanguage;
+  // Room message handling
+  socket.on("room-message", (data) => {
+    console.log("Room message:", data);
+    if (data.room) {
+      // Remove this line as the message is already emitted from the route handler
+      // io.to(data.room).emit("room-message", data.message);
+    }
+  });
 
-      console.log("Detected language:", {
-        text: message.content,
-        language: detectedLanguage,
-      });
-
-      io.to(message.channel).emit("chat-message", message);
-    } catch (error) {
-      console.error("Language detection error:", error);
-      // If detection fails, still send message but with undefined language
-      io.to(message.channel).emit("chat-message", message);
+  // Private message handling
+  socket.on("private-message", (data) => {
+    console.log("Server received private message:", data);
+    if (data.recipientId) {
+      // io.to(data.recipientId).emit("private-message", data);
     }
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("Client disconnected:", socket.id);
   });
 
   socket.on("translate-message", async (data, callback) => {
@@ -89,6 +112,7 @@ const friendsRoutes = require("./routes/friends");
 app.use("/api/friends", friendsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/channels", channelsRouter);
+app.use("/api/translate", translateRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

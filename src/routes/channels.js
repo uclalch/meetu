@@ -3,6 +3,8 @@ const router = express.Router();
 const Channel = require("../models/Channel");
 const auth = require("../middleware/auth");
 const mongoose = require("mongoose");
+const Message = require("../models/Message");
+const User = require("../models/User");
 
 // Create new channel
 router.post("/", auth, async (req, res) => {
@@ -220,6 +222,93 @@ router.get("/:channelId", auth, async (req, res) => {
   } catch (error) {
     console.error("Error getting channel:", error);
     res.status(500).json({ error: "Failed to get channel details" });
+  }
+});
+
+// Get private messages
+router.get("/private/:friendId", auth, async (req, res) => {
+  try {
+    const { friendId } = req.params;
+    const userId = req.user._id;
+
+    const messages = await Message.find({
+      $or: [
+        { sender: userId, recipient: friendId, type: "private" },
+        { sender: friendId, recipient: userId, type: "private" },
+      ],
+    })
+      .sort({ createdAt: 1 })
+      .populate("sender", "username")
+      .populate("recipient", "username");
+
+    res.json(messages);
+  } catch (error) {
+    console.error("Error getting private messages:", error);
+    res.status(500).json({ error: "Failed to load messages" });
+  }
+});
+
+// Room message route
+router.post("/:channelId/messages", auth, async (req, res) => {
+  try {
+    const { channelId } = req.params;
+    const { content } = req.body;
+    const senderId = req.user._id;
+
+    const message = new Message({
+      content,
+      sender: senderId,
+      channel: channelId,
+      type: "channel",
+    });
+
+    await message.save();
+    await message.populate("sender", "username");
+
+    // Emit room message
+    const io = req.app.get("io");
+    if (io) {
+      io.to(channelId).emit("room-message", message);
+    }
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error("Error saving message:", error);
+    res.status(500).json({ error: "Failed to save message" });
+  }
+});
+
+// Private message route
+router.post("/private/:friendId/messages", auth, async (req, res) => {
+  try {
+    const { friendId } = req.params;
+    const { content } = req.body;
+    const senderId = req.user._id;
+
+    const message = new Message({
+      content,
+      sender: senderId,
+      recipient: friendId,
+      type: "private",
+    });
+
+    await message.save();
+    await message.populate("sender", "username");
+    await message.populate("recipient", "username");
+
+    // Emit private message
+    const io = req.app.get("io");
+    if (io) {
+      console.log("Emitting private message to:", friendId);
+      io.to(friendId).emit("private-message", {
+        message: message,
+      });
+    }
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error("Error sending private message:", error);
+    res.status(500).json({ error: "Failed to send message" });
   }
 });
 

@@ -8,6 +8,7 @@
     "dev": "nodemon src/server.js"
   },
   "dependencies": {
+    "@vitalets/google-translate-api": "^9.2.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
@@ -15,7 +16,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.1.4",
     "socket.io": "^4.6.1",
-    "tencentcloud-sdk-nodejs": "^4.0.0"
+    "tencentcloud-sdk-nodejs": "^4.0.1021"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
