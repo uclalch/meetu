@@ -1069,6 +1069,18 @@
           transform: translateY(0);
         }
       }
+
+      .friend-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .delete-btn {
+        color: #dc3545;
+        cursor: pointer;
+        margin-left: auto; /* This pushes the × to the right */
+      }
     </style>
   </head>
   <body>
@@ -2423,13 +2435,12 @@
               const friendElement = document.createElement("div");
               friendElement.className = "friend-item";
               friendElement.innerHTML = `
-                  <div class="friend-info">
+                  <div class="friend-info" onclick="openFriendChat('${friend._id}', '${friend.username}')">
                       <span class="friend-name">${friend.username}</span>
                       <span class="friend-status ${friend.status}">${friend.status}</span>
+                      <span class="delete-btn" onclick="event.stopPropagation(); deleteFriend('${friend._id}', '${friend.username}')">×</span>
                   </div>
               `;
-              friendElement.onclick = () =>
-                openFriendChat(friend._id, friend.username);
               friendsContainer.appendChild(friendElement);
             });
           }
@@ -2442,6 +2453,44 @@
       document.addEventListener("DOMContentLoaded", () => {
         loadFriends();
       });
+
+      async function deleteFriend(userId, username) {
+        if (
+          !confirm(
+            `Are you sure you want to remove ${username} from your friends list?`
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/friends/${userId}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: localStorage.getItem("token"),
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to delete friend");
+          }
+
+          // If the deleted friend's chat is currently open, close it
+          if (currentFriendChat === userId) {
+            const modal = document.getElementById("friendChatModal");
+            if (modal) {
+              modal.style.display = "none";
+            }
+            currentFriendChat = null;
+          }
+
+          // Refresh friends list
+          await loadFriends();
+        } catch (error) {
+          console.error("Error deleting friend:", error);
+          alert("Failed to delete friend");
+        }
+      }
     </script>
   </body>
 </html>
