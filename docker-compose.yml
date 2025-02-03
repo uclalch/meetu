@@ -23,7 +23,7 @@ services:
       - TENCENT_SECRET_ID=${TENCENT_SECRET_ID}
       - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY}
     volumes:
-      - .:/usr/src/app
+      - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
       - mongodb

@@ -1,0 +1,21 @@
+{
+  "name": "meetu",
+  "version": "1.0.0",
+  "description": "MeetU Chat Platform",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "@vitalets/google-translate-api": "^9.2.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3",
+    "socket.io": "^4.6.1",
+    "tencentcloud-sdk-nodejs": "^4.0.1021"
+  }
+}

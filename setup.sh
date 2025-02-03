@@ -27,7 +27,12 @@ fi
 # Source external .env file if it exists
 if [ -f "/Users/larryli/Documents/Sobriety/Companies/companies_keys/MeetU/.env" ]; then
     echo -e "${GREEN}Found external .env file, importing credentials...${NC}"
+    # Add some debug output
+    echo -e "${YELLOW}Checking Tencent credentials...${NC}"
     export $(cat "/Users/larryli/Documents/Sobriety/Companies/companies_keys/MeetU/.env" | grep -E "TENCENT_|JWT_" | xargs)
+    # Print (masked) credentials to verify
+    echo -e "${GREEN}TENCENT_SECRET_ID=${TENCENT_SECRET_ID:0:4}...${NC}"
+    echo -e "${GREEN}TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY:0:4}...${NC}"
 else
     echo -e "${RED}No external .env file found at /Users/larryli/Documents/Sobriety/Companies/companies_keys/MeetU/.env${NC}"
     echo -e "${RED}Please ensure TENCENT_SECRET_ID and TENCENT_SECRET_KEY are set.${NC}"
@@ -41,10 +46,13 @@ if docker-compose ps | grep -q "meetu"; then
     exit 0
 fi
 
+# Create frontend directory if it doesn't exist
+mkdir -p frontend
+
 # Check if package.json exists, if not create it
-if [ ! -f "package.json" ]; then
+if [ ! -f "frontend/package.json" ]; then
     echo -e "${YELLOW}Creating package.json...${NC}"
-    cat > package.json << 'EOL'
+    cat > frontend/package.json << 'EOL'
 {
   "name": "meetu",
   "version": "1.0.0",
@@ -55,33 +63,21 @@ if [ ! -f "package.json" ]; then
     "dev": "nodemon src/server.js"
   },
   "dependencies": {
+    "@vitalets/google-translate-api": "^9.2.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.3",
-    "socket.io": "^4.6.1"
+    "socket.io": "^4.6.1",
+    "tencentcloud-sdk-nodejs": "^4.0.1022"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }
 EOL
-fi
-
-# Check if node_modules exists and package.json hasn't changed
-if [ -d "node_modules" ] && [ -f "package.json" ]; then
-    CURRENT_HASH=$(md5sum package.json | cut -d' ' -f1)
-    if [ -f ".package_hash" ]; then
-        STORED_HASH=$(cat .package_hash)
-        if [ "$CURRENT_HASH" == "$STORED_HASH" ]; then
-            echo -e "${GREEN}Dependencies are up to date.${NC}"
-        else
-            echo -e "${YELLOW}Package.json has changed. Removing node_modules...${NC}"
-            rm -rf node_modules
-            echo "$CURRENT_HASH" > .package_hash
-        fi
-    else
-        echo "$CURRENT_HASH" > .package_hash
-    fi
 fi
 
 # Build and start containers in foreground
