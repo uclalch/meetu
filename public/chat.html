@@ -693,381 +693,90 @@
       }
 
       .friend-sidebar {
-        width: 200px;
-        background: #f5f5f5;
-        border-right: 1px solid #ddd;
-        padding: 15px;
-        height: 100%;
-        overflow-y: auto;
-      }
-
-      .rooms-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-      }
-
-      .add-friend-btn {
-        background: #8b6bf2;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        font-size: 14px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        line-height: 1;
-      }
-
-      .add-friend-btn:hover {
-        background: #7451f0;
-      }
-
-      .no-friend-message {
-        text-align: center;
-        color: #888;
-        margin-top: 20px;
-      }
-
-      .no-friend-message h2 {
-        font-size: 14px;
-        font-weight: normal;
-      }
-
-      .divider {
-        height: 1px;
-        background: #ddd;
-        margin: 10px 0;
-      }
-
-      /* Modal Styles */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-      }
-
-      .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
+        width: 250px;
+        background: #f8f9fa;
+        border-right: 1px solid #e2e8f0;
         padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 500px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      .modal-header h2 {
-        margin: 0;
-        font-size: 1.5em;
-        color: #333;
-      }
-
-      .close {
-        color: #aaa;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-
-      .close:hover {
-        color: #555;
-      }
-
-      .modal-body {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 20px;
       }
 
-      .modal-body input[type="email"],
-      .modal-body input[type="text"] {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-      }
-
-      .modal-body button {
-        background: #8b6bf2;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      .modal-body button:hover {
-        background: #7451f0;
-      }
-
-      /* Friend Chat Specific Styles */
-      #friendChatMessages {
-        height: 300px;
-        overflow-y: auto;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 10px;
+      .requests-header {
+        font-weight: 600;
+        color: #4a5568;
         margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #e2e8f0;
       }
 
-      .chat-input {
-        display: flex;
-        gap: 10px;
+      .friend-request-item {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
 
-      .chat-input input {
-        flex: 1;
-      }
-
-      /* Add these styles to your existing CSS */
-      .friend-item {
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-        cursor: pointer;
-        transition: background-color 0.2s;
-      }
-
-      .friend-item:hover {
-        background-color: #f0f0f0;
-      }
-
-      .friend-info {
+      .request-info {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 8px;
       }
 
-      .friend-name {
+      .request-user {
         font-weight: 500;
+        color: #2d3748;
       }
 
-      .friend-status {
-        font-size: 12px;
-        padding: 2px 6px;
-        border-radius: 10px;
+      .request-status {
+        font-size: 0.8em;
+        color: #718096;
       }
 
-      .friend-status.online {
-        background-color: #4caf50;
+      .request-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .accept-btn,
+      .reject-btn {
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 0.9em;
+        cursor: pointer;
+        border: none;
+      }
+
+      .accept-btn {
+        background: #48bb78;
         color: white;
       }
 
-      .friend-status.offline {
-        background-color: #9e9e9e;
+      .reject-btn {
+        background: #f56565;
         color: white;
       }
 
-      #friendsList {
-        margin-top: 10px;
+      .pending-label {
+        font-size: 0.8em;
+        color: #718096;
+        font-style: italic;
       }
 
       .friend-item {
         padding: 10px;
-        border-radius: 4px;
-        margin-bottom: 5px;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 8px;
         cursor: pointer;
         transition: background-color 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
 
       .friend-item:hover {
-        background-color: #e0e0e0;
-      }
-
-      .no-friend-message {
-        text-align: center;
-        color: #888;
-        margin-top: 20px;
-      }
-
-      .no-friend-message h2 {
-        font-size: 14px;
-        font-weight: normal;
-      }
-
-      .message-content {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        max-width: 80%;
-      }
-
-      .message.sent .message-content {
-        align-items: flex-end;
-      }
-
-      .message.received .message-content {
-        align-items: flex-start;
-      }
-
-      .message-text {
-        padding: 8px 12px;
-        border-radius: 12px;
-        word-wrap: break-word;
-      }
-
-      /* Room chat styles - clean design */
-      .messages-history .message.sent .message-text {
-        background-color: #1a73e8;
-        color: white;
-      }
-
-      .messages-history .message.received .message-text {
-        background-color: #f8f9fa;
-        color: #202124;
-      }
-
-      /* Private chat styles */
-      #friendChatMessages .message {
-        display: flex;
-        flex-direction: column;
-        margin: 12px 0;
-        max-width: 80%;
-      }
-
-      #friendChatMessages .message.sent {
-        align-self: flex-end;
-        align-items: flex-end;
-      }
-
-      #friendChatMessages .message.received {
-        align-self: flex-start;
-        align-items: flex-start;
-      }
-
-      #friendChatMessages .sender {
-        font-size: 0.85em;
-        color: #1976d2;
-        font-weight: 600;
-        margin-bottom: 4px;
-        padding: 0 4px;
-      }
-
-      #friendChatMessages .message-content {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      #friendChatMessages .message-text {
-        padding: 10px 14px;
-        border-radius: 16px;
-        word-wrap: break-word;
-      }
-
-      #friendChatMessages .message.sent .message-text {
-        background-color: #2196f3;
-        color: white;
-        border-top-right-radius: 4px;
-      }
-
-      #friendChatMessages .message.received .message-text {
-        background-color: #f5f5f5;
-        color: #000000;
-        border-top-left-radius: 4px;
-      }
-
-      #friendChatMessages .message-time {
-        font-size: 0.75em;
-        color: #757575;
-        margin-top: 2px;
-        padding: 0 4px;
-      }
-
-      /* Keep other styles the same but remove borders and shadows */
-      .translate-btn {
-        font-size: 11px;
-        padding: 3px 10px;
-        margin: 2px 0;
-        background-color: #ffffff;
-        border: 1px solid #bdbdbd;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: #424242;
-      }
-
-      .translate-btn:hover {
-        background-color: #f5f5f5;
-        border-color: #9e9e9e;
-      }
-
-      .translate-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .translated-text {
-        color: #616161;
-        font-style: italic;
-        margin-top: 4px;
-        padding: 4px 8px;
-        background-color: #f5f5f5;
-        border-radius: 8px;
-        font-size: 0.95em;
-      }
-
-      .message.sent .translated-text {
-        background-color: rgba(255, 255, 255, 0.9);
-        color: #212121;
-      }
-
-      .message-time {
-        font-size: 0.75em;
-        color: #757575;
-        margin-top: 2px;
-      }
-
-      .sender {
-        font-size: 0.9em;
-        color: #1976d2;
-        margin-bottom: 3px;
-        font-weight: 600;
-      }
-
-      #friendName {
-        color: #1976d2;
-        font-weight: 600;
-        font-size: 1.2em;
-        padding: 10px 0;
-        border-bottom: 2px solid #e3f2fd;
-        margin-bottom: 15px;
-      }
-
-      .message {
-        animation: fadeIn 0.2s ease-out;
-        margin: 8px 0;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        background-color: #f7fafc;
       }
 
       .friend-info {
@@ -1076,10 +785,131 @@
         gap: 8px;
       }
 
+      .friend-name {
+        font-weight: 500;
+        color: #2d3748;
+      }
+
+      .friend-status {
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: #e2e8f0;
+        color: #4a5568;
+      }
+
+      .friend-status.online {
+        background: #48bb78;
+        color: white;
+      }
+
+      .friend-status.offline {
+        background: #a0aec0;
+        color: white;
+      }
+
       .delete-btn {
-        color: #dc3545;
+        margin-left: auto;
+        color: #e53e3e;
         cursor: pointer;
-        margin-left: auto; /* This pushes the × to the right */
+        font-size: 18px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .friend-item:hover .delete-btn {
+        opacity: 1;
+      }
+
+      .friend-chat-modal {
+        width: 90%;
+        max-width: 600px;
+        height: 80vh;
+        margin: 5vh auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .friend-chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 10px 0;
+      }
+
+      .friend-chat-input {
+        display: flex;
+        gap: 10px;
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .friend-chat-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      .friend-chat-input button {
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .friend-chat-input button:hover {
+        background: #5a67d8;
+      }
+
+      #friendChatModal .modal-content {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #friendChatModal .modal-header {
+        padding: 15px 20px;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      #friendChatModal .modal-header h2 {
+        margin: 0;
+        font-size: 18px;
+        color: #2d3748;
+      }
+
+      .friend-message {
+        margin: 10px 0;
+        max-width: 80%;
+      }
+
+      .friend-message.sent {
+        margin-left: auto;
+      }
+
+      .friend-message .message-content {
+        padding: 10px 15px;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .friend-message.sent .message-content {
+        background: #667eea;
+        color: white;
+      }
+
+      .friend-message .message-time {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 4px;
       }
     </style>
   </head>
@@ -1234,21 +1064,19 @@
 
     <!-- Friend Chat Modal -->
     <div id="friendChatModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content friend-chat-modal">
         <div class="modal-header">
           <h2 id="friendChatTitle">Chat with <span id="friendName"></span></h2>
-          <span class="close">&times;</span>
+          <span class="close" onclick="closeFriendChat()">&times;</span>
         </div>
-        <div class="modal-body">
-          <div id="friendChatMessages" class="chat-messages"></div>
-          <div class="chat-input">
-            <input
-              type="text"
-              id="friendMessageInput"
-              placeholder="Type a message..."
-            />
-            <button id="sendFriendMessageBtn">Send</button>
-          </div>
+        <div id="friendChatMessages" class="friend-chat-messages"></div>
+        <div class="friend-chat-input">
+          <input
+            type="text"
+            id="friendMessageInput"
+            placeholder="Type a message..."
+          />
+          <button onclick="sendFriendMessage()">Send</button>
         </div>
       </div>
     </div>
@@ -1460,22 +1288,22 @@
 
         messageDiv.className = `message ${isSentByMe ? "sent" : "received"}`;
         messageDiv.innerHTML = `
-        <div class="message-content">
-            <span class="sender">${
-              message.sender ? message.sender.username : "Unknown"
-            }</span>
-            <div class="message-text">
-                <span class="text">${message.content}</span>
-                <span class="translated-text" style="display: none; color: #666; font-style: italic;"></span>
-            </div>
-            <button class="translate-btn" style="font-size: 12px; padding: 2px 8px; margin-left: 8px; cursor: pointer;">
-                Translate
-            </button>
-        </div>
-        <div class="message-time">
-            ${new Date(message.createdAt).toLocaleTimeString()}
-        </div>
-    `;
+          <div class="message-content">
+              <span class="sender">${
+                message.sender ? message.sender.username : "Unknown"
+              }</span>
+              <div class="message-text">
+                  <span class="text">${message.content}</span>
+                  <span class="translated-text" style="display: none; color: #666; font-style: italic;"></span>
+              </div>
+              <button class="translate-btn" style="font-size: 12px; padding: 2px 8px; margin-left: 8px; cursor: pointer;">
+                  Translate
+              </button>
+          </div>
+          <div class="message-time">
+              ${new Date(message.createdAt).toLocaleTimeString()}
+          </div>
+      `;
 
         const translateBtn = messageDiv.querySelector(".translate-btn");
         const translatedText = messageDiv.querySelector(".translated-text");
@@ -1540,31 +1368,31 @@
       }
       const style = document.createElement("style");
       style.textContent = `
-        .message-content {
-            position: relative;
-        }
-        .translate-btn {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-        .translate-btn:hover {
-            opacity: 1;
-        }
-        .translate-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .message-text {
-            margin: 4px 0;
-        }
-        .translated-text {
-            color: #666;
-            font-style: italic;
-        }
-    `;
+          .message-content {
+              position: relative;
+          }
+          .translate-btn {
+              background-color: #f0f0f0;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              opacity: 0.8;
+              transition: opacity 0.2s;
+          }
+          .translate-btn:hover {
+              opacity: 1;
+          }
+          .translate-btn:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+          }
+          .message-text {
+              margin: 4px 0;
+          }
+          .translated-text {
+              color: #666;
+              font-style: italic;
+          }
+      `;
       document.head.appendChild(style);
 
       function handleLogout() {
@@ -1616,6 +1444,16 @@
             .charAt(0)
             .toUpperCase();
         }
+        loadFriendRequests(); // Add this line
+        loadFriends();
+
+        // Refresh friend requests periodically
+        setInterval(() => {
+          loadFriendRequests();
+        }, 30000); // Refresh every 30 seconds
+
+        // Add friend form submit
+        document.getElementById("sendRequestBtn").onclick = addFriend;
       });
 
       // Helper function to get language names
@@ -1766,20 +1604,20 @@
           const isOwner = channel.owner._id === currentUser.id;
 
           // Add click handler for room selection
-          // IMPORTANT: Remove the membership check for room creation
           roomInfoDiv.onclick = () => selectRoom(channel._id, channel.name);
 
-          roomInfoDiv.innerHTML = `
+          const roomContent = `
               <div class="room-name">${channel.name}</div>
               <div class="room-description">${channel.description || ""}</div>
               <div class="room-details">
-                  <span class="room-owner">Created by ${
-                    channel.owner.username
-                  }</span>
-                  <span class="room-hash">#${channel.hash}</span>
+                <span class="room-owner">Created by ${
+                  channel.owner.username
+                }</span>
+                <span class="room-hash">#${channel.hash}</span>
               </div>
-          `;
+            `;
 
+          roomInfoDiv.innerHTML = roomContent;
           roomDiv.appendChild(roomInfoDiv);
 
           if (currentUser) {
@@ -2128,7 +1966,7 @@
 
           console.log("Adding friend with email:", email); // Debug log
 
-          const response = await fetch("/api/friends/add", {
+          const response = await fetch("/api/friends/request", {
             method: "POST",
             headers: {
               Authorization: token,
@@ -2157,29 +1995,15 @@
       function openFriendChat(friendId, friendName) {
         console.log("Opening chat with friend:", { friendId, friendName });
         currentFriendChat = friendId;
-
-        const modal = document.getElementById("friendChatModal");
-        const friendNameElement = document.getElementById("friendName");
-        const messagesContainer = document.getElementById("friendChatMessages");
-
-        if (!modal || !friendNameElement || !messagesContainer) {
-          console.error("Friend chat elements not found");
-          return;
-        }
-
-        friendNameElement.textContent = friendName;
-        messagesContainer.innerHTML = "";
-
-        // Join private chat room
-        const currentUser = JSON.parse(localStorage.getItem("user"));
-        socket.emit("join-private", {
-          username: currentUser.username,
-          userId: currentUser.id,
-          friendId: friendId,
-        });
-
+        document.getElementById("friendName").textContent = friendName;
+        document.getElementById("friendChatModal").style.display = "block";
+        document.getElementById("friendChatMessages").innerHTML = "";
         loadFriendMessages(friendId);
-        modal.style.display = "block";
+      }
+
+      function closeFriendChat() {
+        document.getElementById("friendChatModal").style.display = "none";
+        currentFriendChat = null;
       }
 
       async function loadFriendMessages(friendId) {
@@ -2214,16 +2038,17 @@
           .map((msg) => {
             const isSentByMe = msg.sender._id === currentUser.id;
             return `
-                    <div class="message ${isSentByMe ? "sent" : "received"}">
-                        <div class="message-content">
-                            <span class="sender">${msg.sender.username}</span>
-                            <span class="text">${msg.content}</span>
-                        </div>
-                        <div class="message-time">${new Date(
-                          msg.createdAt
-                        ).toLocaleTimeString()}</div>
-                    </div>
-                `;
+                      <div class="friend-message ${
+                        isSentByMe ? "sent" : "received"
+                      }">
+                          <div class="message-content">
+                              <span class="text">${msg.content}</span>
+                          </div>
+                          <div class="message-time">
+                              ${new Date(msg.createdAt).toLocaleTimeString()}
+                          </div>
+                      </div>
+                  `;
           })
           .join("");
 
@@ -2291,73 +2116,20 @@
       function appendFriendMessage(message) {
         const messagesContainer = document.getElementById("friendChatMessages");
         const currentUser = JSON.parse(localStorage.getItem("user"));
-
-        if (!messagesContainer || !currentUser) {
-          console.error("Required elements not found");
-          return;
-        }
-
-        const messageDiv = document.createElement("div");
         const isSentByMe = message.sender._id === currentUser.id;
 
-        messageDiv.className = `message ${isSentByMe ? "sent" : "received"}`;
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `friend-message ${
+          isSentByMe ? "sent" : "received"
+        }`;
         messageDiv.innerHTML = `
-        <div class="message-content">
-            <span class="text">${message.content}</span>
-            <button class="translate-btn">Translate</button>
-            <span class="translated-text" style="display: none;"></span>
-        </div>
-        <div class="message-time">
-            ${new Date(message.createdAt).toLocaleTimeString()}
-        </div>
-    `;
-
-        // Add translation button click handler
-        const translateBtn = messageDiv.querySelector(".translate-btn");
-        const translatedText = messageDiv.querySelector(".translated-text");
-        const originalText = messageDiv.querySelector(".text");
-
-        translateBtn.addEventListener("click", async () => {
-          try {
-            const response = await fetch("/api/translate", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: localStorage.getItem("token"),
-              },
-              body: JSON.stringify({
-                text: message.content,
-                targetLanguage: "en", // or get from user preferences
-              }),
-            });
-
-            if (!response.ok) {
-              throw new Error("Translation failed");
-            }
-
-            const data = await response.json();
-            translatedText.textContent = data.translatedText;
-            translatedText.style.display = "block";
-            originalText.style.display = "none";
-            translateBtn.textContent = "Show Original";
-
-            // Toggle between original and translated text
-            translateBtn.onclick = () => {
-              if (translatedText.style.display === "none") {
-                translatedText.style.display = "block";
-                originalText.style.display = "none";
-                translateBtn.textContent = "Show Original";
-              } else {
-                translatedText.style.display = "none";
-                originalText.style.display = "block";
-                translateBtn.textContent = "Translate";
-              }
-            };
-          } catch (error) {
-            console.error("Translation error:", error);
-            alert("Translation failed");
-          }
-        });
+            <div class="message-content">
+              <div class="message-text">${message.content}</div>
+            </div>
+            <div class="message-time">
+              ${new Date(message.createdAt).toLocaleTimeString()}
+            </div>
+          `;
 
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -2387,23 +2159,104 @@
         // Add friend form submit
         document.getElementById("sendRequestBtn").onclick = addFriend;
 
-        // Send message button
-        document.getElementById("sendFriendMessageBtn").onclick =
-          sendFriendMessage;
+        // Friend chat message handling
+        const friendMessageInput =
+          document.getElementById("friendMessageInput");
+        if (friendMessageInput) {
+          friendMessageInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendFriendMessage();
+            }
+          });
+        }
 
-        // Enter key in message input
-        document.getElementById("friendMessageInput").onkeypress = function (
-          e
-        ) {
-          if (e.key === "Enter" && !e.shiftKey) {
-            console.log("Enter pressed in friend chat");
-            e.preventDefault();
-            sendFriendMessage();
-          }
-        };
+        loadFriendRequests();
+
+        // Refresh friend requests periodically
+        setInterval(() => {
+          loadFriendRequests();
+        }, 30000); // Refresh every 30 seconds
       });
 
-      // Add this to your existing JavaScript
+      // Add this function to load and display friend requests
+      async function loadFriendRequests() {
+        try {
+          const response = await fetch("/api/friends/requests/all", {
+            headers: {
+              Authorization: localStorage.getItem("token"),
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch friend requests");
+          }
+
+          const requests = await response.json();
+          const requestsContainer = document.getElementById("pendingRequests");
+          const currentUser = JSON.parse(localStorage.getItem("user"));
+
+          requestsContainer.innerHTML = requests.length
+            ? '<div class="requests-header">Friend Requests</div>'
+            : "";
+
+          requests.forEach((request) => {
+            const isSender = request.sender._id === currentUser.id;
+            const otherUser = isSender ? request.recipient : request.sender;
+
+            const requestElement = document.createElement("div");
+            requestElement.className = "friend-request-item";
+            requestElement.innerHTML = `
+                <div class="request-info">
+                  <span class="request-user">${otherUser.username}</span>
+                  <span class="request-status">${
+                    isSender ? "Sent" : "Received"
+                  }</span>
+                </div>
+                ${
+                  !isSender
+                    ? `
+                  <div class="request-actions">
+                    <button onclick="handleFriendRequest('${request._id}', 'accepted')" class="accept-btn">Accept</button>
+                    <button onclick="handleFriendRequest('${request._id}', 'rejected')" class="reject-btn">Reject</button>
+                  </div>
+                `
+                    : '<span class="pending-label">Pending</span>'
+                }
+              `;
+            requestsContainer.appendChild(requestElement);
+          });
+        } catch (error) {
+          console.error("Error loading friend requests:", error);
+        }
+      }
+
+      // Add this function to handle friend request responses
+      async function handleFriendRequest(requestId, status) {
+        try {
+          const response = await fetch(`/api/friends/request/${requestId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: localStorage.getItem("token"),
+            },
+            body: JSON.stringify({ status }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to update friend request");
+          }
+
+          // Refresh both friends list and requests
+          await loadFriendRequests();
+          await loadFriends();
+        } catch (error) {
+          console.error("Error handling friend request:", error);
+          alert(error.message);
+        }
+      }
+
+      // Add this function back to load friends list
       async function loadFriends() {
         try {
           console.log("Fetching friends...");
@@ -2435,12 +2288,18 @@
               const friendElement = document.createElement("div");
               friendElement.className = "friend-item";
               friendElement.innerHTML = `
-                  <div class="friend-info" onclick="openFriendChat('${friend._id}', '${friend.username}')">
-                      <span class="friend-name">${friend.username}</span>
-                      <span class="friend-status ${friend.status}">${friend.status}</span>
-                      <span class="delete-btn" onclick="event.stopPropagation(); deleteFriend('${friend._id}', '${friend.username}')">×</span>
+                  <div class="friend-info" onclick="openFriendChat('${
+                    friend._id
+                  }', '${friend.username}')">
+                    <span class="friend-name">${friend.username}</span>
+                    <span class="friend-status ${friend.status || "offline"}">${
+                friend.status || "offline"
+              }</span>
+                    <span class="delete-btn" onclick="event.stopPropagation(); deleteFriend('${
+                      friend._id
+                    }', '${friend.username}')">×</span>
                   </div>
-              `;
+                `;
               friendsContainer.appendChild(friendElement);
             });
           }
@@ -2449,12 +2308,8 @@
         }
       }
 
-      // Call loadFriends when page loads
-      document.addEventListener("DOMContentLoaded", () => {
-        loadFriends();
-      });
-
-      async function deleteFriend(userId, username) {
+      // Add this function to handle friend deletion
+      async function deleteFriend(friendId, username) {
         if (
           !confirm(
             `Are you sure you want to remove ${username} from your friends list?`
@@ -2464,7 +2319,7 @@
         }
 
         try {
-          const response = await fetch(`/api/friends/${userId}`, {
+          const response = await fetch(`/api/friends/${friendId}`, {
             method: "DELETE",
             headers: {
               Authorization: localStorage.getItem("token"),
@@ -2476,7 +2331,7 @@
           }
 
           // If the deleted friend's chat is currently open, close it
-          if (currentFriendChat === userId) {
+          if (currentFriendChat === friendId) {
             const modal = document.getElementById("friendChatModal");
             if (modal) {
               modal.style.display = "none";
